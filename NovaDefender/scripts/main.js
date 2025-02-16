@@ -4,8 +4,6 @@ let tps_c = 0;
 let msc = 0;
 let ms = true;
 
-server.world.afterEvents.playerJoin
-
 server.world.beforeEvents.chatSend.subscribe((ev) => {
   if (ev.message == ";idsetup") {
     ev.cancel = true;
