@@ -1,71 +1,40 @@
-# NovaDefender AntiCheat
+この度は NovaDefender AntiCheat を導入して頂き誠にありがとうございます。
 
-## 利用規約
+# 利用規約
 
-このアドオンを改造し、二次配布を行うことは禁止されています
-自己製作発言もおやめください
+この利用規約は必ずお読みください。
 
-## 注意事項
+・ワールド組み込みは可能ですが、「自分で作ったアンチチートを導入しています！」などの自己制作発言や、改造からの配布は禁止です。
+・組み込んだワールドを公開する場合は URL 記載はいりませんができればダウンロードしたクラフターズコロニー、github の URL を記載してくれると嬉しいです
+・NovaDefender AntiCheat を改造 => ワールド組み込み => 使用 or 配布 は OK です しかし配布する場合はワールド組み込みのルールを守ってください。
+・もちろんですが、ワールド組み込みを除いた二次配布は禁止です。 アドオンを改造 => 配布 などは禁止です
+・このアドオンによって発生した損害については開発者は責任を問いません。
 
-このアドオンはbata版です
-このアドオンによって発生した損害については作成者は責任を問いません
+# 使い方
 
-## 使用方法
+最初に 「/function nova:start 」を実行してください
 
-> [!CAUTION]
-> **βAPIとeducation editionを有効にしてください** これをしないとアドオンが正常に動作しない場合があります。
+実行するとセットアップ画面が表示されますので次に進み、利用規約に同意してください
 
-### コマンド一覧
+その次にワールド主の名前を入力してください （基本的に自分の名前）
 
-#### help
+完了を押すと operator 権限が付与されます
 
-コマンド一覧を表示します。 ;helpの後にコマンド名を入力するとそのコマンドの詳細を確認できます。
-permission: operator / syntax: ;help [command: String]
+;helpでコマンドリストを表示します
 
-#### item
 
-右クリックすると管理パネルを表示するアイテルを付与します。 
-permission: operator / syntax: ;item
+# コマンド
 
-#### tps
+;help => コマンド一覧表示 ;help コマンド名 でそのコマンドの詳細を表示します
 
-実行すると現在のワールドTPSが表示されます
-permission: operator / syntax: ;tps
+;tps => ワールドのTPS（tick per seconds）を表示します。
 
-#### setting
+;setting => 管理画面を開きます コマンドを打ったら直ぐにチャットを閉じてください
 
-実行して直ぐにチャットを閉じると管理パネルが表示されます。
-permission: operator / syntax: ;setting
+;item => 管理画面を開くアイテルを取得します 右クリックで開けます
 
-#### kick
+;data => 自分 または他のプレイヤーの詳細データを表示します ;data プレイヤー名 で指定したプレイヤー名のデータを表示します
 
-指定したプレイヤーをkickします。　自分をkickすることはできません
-permission: operator / syntax: ;kick [player: String]
+;
 
-#### op
-
-指定したプレイヤーに管理者権限を付与します　プレイヤー名を指定していない場合はコマンド実行者が対象プレイヤーになります。
-permission: operator / syntax: ;op [player: String]
-
-#### deop
-
-指定したプレイヤーの管理者権限を削除します。 プレイヤー名を指定していない場合はコマンド実行者が対象プレイヤーになります。
-permission: operator / syntax: ;deop [player: String]
-
-#### data
-
-指定したプレイヤーの情報を表示します。プレイヤー名を指定していない場合はコマンド実行者が対象プレイヤーになります。
-permission: operator / syntax: ;data [player: String]
-
-## Module
-
-* controlpanel (setting UI)
-* CPS limit
-* NoClip detection
-* Speed limit
-* overenchantment detection
-* reach limit
-* cbe / nbt detection
-* Prohibited items
-* etc...
 

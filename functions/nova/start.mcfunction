@@ -1,0 +1,1 @@
+scriptevent nova:setup_page
