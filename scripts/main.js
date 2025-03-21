@@ -12,27 +12,44 @@ let changelog_list = [
   },
   {
     name: "公式サイトを作成",
-    disp: " ",
+    disp: "site create",
     time: "2025/3/13",
   },
+  {
+    name: "修正",
+    disp: "欠点を修正",
+    time: "2025/3/21",
+  },
 ];
-
 let office_support_server = "作成中";
 let office_site_url =
-  "\nhttps://creeperdeveloper.github.io\n/NovaDefender-AntiCheat-official-site/";
+  "https://creeperdeveloper.github.io/NovaDefender-AntiCheat-official-site/";
 
 let abouts = [
   "scriptAPIを使った",
   "多機能アンチチートアドオンです。",
-  "\n\n\n\n   §vdeveloper: §rFlimsyDeer05833 / creeper_developer",
+  "\n\n\n\n§vdeveloper: §rFlimsyDeer05833 / creeper_developer",
   `§v公式サイト: §r${office_site_url}`,
   `§vサポートサーバー: §r${office_support_server}`,
 ];
 
+server.world.beforeEvents.chatSend.subscribe((ev) => {
+  if (ev.message == ";version") {
+    ev.cancel = true;
+    if (getop(ev.sender) == true) {
+      ev.sender.sendMessage(`§aNovaDefender version in use is ${v}!`);
+    } else {
+      ev.sender.sendMessage(
+        `[§a§lNovaDefender§r] §ccommand error: 権限が存在しません。 §r(§7permission is undefined§r)`
+      );
+    }
+  }
+});
+
 let elapsedTicks = 0;
 let ms = true;
 let msc = 0;
-let v = "v4beta";
+let v = "v1.1beta";
 let tickCount = 0;
 let lastTime = Date.now();
 let currentTPS = 20;
@@ -78,15 +95,59 @@ let command_list = {
     syntax: ";item",
     permission: "operator",
   },
+  ";about": {
+    disp: "このアドオンの情報を表示します",
+    syntax: ";about",
+    permission: "operator",
+  },
 };
 
-// server.world.afterEvents.playerSpawn.subscribe((ev) => {
-//   if (ev.initialSpawn && joincount == 0 && getdp("nova:active") == false) {
-//     server.world.sendMessage(
-//       `[§a§lNovaDefender AntiCheat ${v}§r] アドオンのセットアップを行うために §efunction nova:start§r を実行してください。`
-//     );
-//   }
-// });
+function getop(player) {
+  if (player.getDynamicProperty("nova:operator") === undefined) {
+    return false;
+  } else if (player.getDynamicProperty("nova:operator") == false) {
+    return false;
+  } else if (player.getDynamicProperty("nova:operator") == true) {
+    return true;
+  } else {
+    return undefined;
+  }
+}
+
+server.world.beforeEvents.chatSend.subscribe((ev) => {
+  if (ev.message == ";about") {
+    ev.cancel = true;
+    if (getop(ev.sender)) {
+      ev.cancel = true;
+      let about_view = "";
+      abouts.forEach((nakami) => {
+        about_view = about_view + nakami + `\n`;
+      });
+      ev.sender.sendMessage(
+        `§aNovaDefender AntiCheat ${v} about\n§v------------------------§r\n${about_view}`
+      );
+    } else {
+      ev.sender.sendMessage(
+        `[§a§lNovaDefender§r] §ccommand error: 権限が存在しません。 §r(§7permission is undefined§r)`
+      );
+    }
+  }
+});
+
+server.system.runInterval(() => {
+  let owner = getPlayerByName(getdp("nova:owner"));
+  if (
+    owner.getDynamicProperty("nova:operator") == false &&
+    owner.getDynamicProperty("nova:operator") !== undefined
+  ) {
+    owner.sendMessage(
+      "[§a§lNovaDefender§r] §aオペレーター権限が取り消されたため自動付与しました。"
+    );
+    owner.setDynamicProperty("nova:operator", true);
+  } else {
+    return;
+  }
+});
 
 server.system.run(() => {
   server.world.sendMessage(
@@ -666,7 +727,7 @@ function Noentityremove(player) {
           let resultNoentity = Noentity;
           let resultNoentityJson = JSON.stringify(resultNoentity);
           setdp("nova:noentity", resultNoentityJson);
-          server.world.sendMessage(
+          player.sendMessage(
             `[§a§lNovaDefender§r] §l${Noremoveid}を禁止エンティティから削除しました`
           );
           server.system.runTimeout(() => {
@@ -719,7 +780,7 @@ function Noentitysetting_form(player) {
     if (response.canceled) Noentitysetting(player);
 
     if (response.formValues[0] === "") {
-      server.world.sendMessage("§7空白のためキャンセルされました");
+      player.sendMessage("§7空白のためキャンセルされました");
       return;
     }
     let Noentity = JSON.parse(getdp("nova:noentity"));
@@ -809,11 +870,14 @@ server.world.beforeEvents.chatSend.subscribe((ev) => {
         for (let command in command_list) {
           let commanddisp = command_list[command];
           player.sendMessage(
-            `§v${command} §r§b==§r ${String(
+            `  §r§b-§r §v${command} §r§b==§r ${String(
               commanddisp["disp"]
             )} §r(§ppermission :${String(commanddisp["permission"])}§r)`
           );
         }
+        player.sendMessage(
+          `\n\n§sSupport Discord Servers: ${office_support_server}`
+        );
       } else if (ev.message.startsWith(";help ")) {
         let args = ev.message.split(" ");
         let commanddisp = command_list[`;${args[1]}`];
@@ -864,26 +928,6 @@ server.system.runInterval(() => {
       }
     }
   }
-});
-
-//デバック用 | 禁止アイテムリセット
-server.world.beforeEvents.chatSend.subscribe((ev) => {
-  if (ev.message == "test" && ev.sender.name == "FlimsyDeer05833")
-    setdp(
-      "nova:noitem",
-      JSON.stringify([
-        "minecraft:tnt",
-        "minecraft:moving_block",
-        "minecraft:end_crystal",
-        "minecraft:ender_pearl",
-        "minecraft:respawn_anchor",
-        "minecraft:fire",
-        "minecraft:water",
-        "minecraft:lava",
-        "minecraft:end_portal",
-        "minecraft:portal",
-      ])
-    );
 });
 
 //undefined回避
@@ -1631,7 +1675,7 @@ function Noitemremove(player) {
           let resultNoitem = Noitemtest;
           let resultNoitemJson = JSON.stringify(resultNoitem);
           setdp("nova:noitem", resultNoitemJson);
-          server.world.sendMessage(
+          player.sendMessage(
             `[§a§lNovaDefender§r] §l${Noitemremoveid}を禁止アイテムから削除しました`
           );
         }
@@ -1660,7 +1704,7 @@ function Noitemsetting_form(player) {
       return;
     }
     if (response.formValues[0] === "") {
-      server.world.sendMessage("§7空白のためキャンセルされました");
+      player.sendMessage("§7空白のためキャンセルされました");
       return;
     }
     let Noitem = JSON.parse(getdp("nova:noitem"));
@@ -1728,14 +1772,6 @@ function getjptime() {
 
   return `${year}-${month}-${day}_${hours}:${minutes}:${seconds}`;
 }
-
-server.system.runInterval(() => {
-  let op = server.world.getPlayers({ tags: ["nova:operator"] });
-  op.forEach((op) => {
-    op.setDynamicProperty("nova:operator", true);
-    op.removeTag("nova:operator");
-  });
-});
 
 function getdp(id) {
   return server.world.getDynamicProperty(id);
@@ -3047,14 +3083,10 @@ function inventory(player, players) {
 
   form.show(player).then((response) => {
     if (response.canceled) player_setting(player);
-    server.world.sendMessage(String(getInventoryItems(players).length));
-    server.world.sendMessage(String(response.selection));
     if (response.selection + 1 > getInventoryItems(players).length) {
-      server.world.sendMessage("test");
       let typeslot = getInventoryItems(players).length - response.selection;
       armorform(player, typeslot, players);
     } else {
-      server.world.sendMessage("test2");
       let selectitem = getInventoryItems(players)[response.selection];
       itemform(player, selectitem.slot, players);
     }
@@ -3093,8 +3125,6 @@ function player_setting(player, players) {
   form
     .show(player)
     .then((response) => {
-      // let selection = response.selection;
-      // server.world.sendMessage(selection);
       switch (response.selection) {
         case 0:
           player_permissoion_setting(player, players);
