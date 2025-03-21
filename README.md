@@ -53,4 +53,12 @@ NovaDefender AntiCheat for minecraft bedrock(以下 本アドオン)を使用す
 
 特定のプレイヤーを kick します。 (構文: ;kick [player: String])
 
+### about
+
+アドオンについて表示します  (構文: ;about)
+
+### version
+
+バージョンを表示します (構文: ;version)
+
 コマンドはどんどん追加します!
