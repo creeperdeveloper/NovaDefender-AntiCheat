@@ -55,7 +55,7 @@ NovaDefender AntiCheat for minecraft bedrock(以下 本アドオン)を使用す
 
 ### about
 
-アドオンについて表示します  (構文: ;about)
+アドオンについて表示します (構文: ;about)
 
 ### version
 
