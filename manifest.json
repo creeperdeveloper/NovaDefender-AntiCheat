@@ -2,7 +2,7 @@
   "format_version": 2,
   "header": {
     "name": "NovaDefender AntiCheat",
-    "description": "多機能で使いやすいアンチチートアドオンです     create FlimsyDeer05833 / creeper_developers\n\n\nYoutube: ",
+    "description": "多機能で使いやすいアンチチートアドオンです。\nCreated By FlimsyDeer05833 / creeper_developer\n\n\nfunction nova/startで初期セットアップを行ってください",
     "uuid": "7beaaa9b-8769-4aa4-8ad0-288ff36260ad",
     "version": [
       0,
