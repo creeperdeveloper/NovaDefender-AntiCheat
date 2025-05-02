@@ -1,5 +1,7 @@
 この度は NovaDefender AntiCheat for minecraft bedrock を導入して頂き誠にありがとうございます
 
+discord: https://x.gd/vZFN3 / http://discord.gg/arW5kCW2P8
+
 # 注意事項
 
 - アドオンはベータ版です。　とくにログ機能に関してはバグがあります　ご注意ください
