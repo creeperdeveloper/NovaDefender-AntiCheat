@@ -2,7 +2,7 @@ discord: https://x.gd/vZFN3 / http://discord.gg/arW5kCW2P8
 
 # 注意事項
 
-- アドオンはベータ版です。　とくにログ機能に関してはバグがあります　ご注意ください
+- アドオンはベータ版です。　特にログ機能に関してはバグがあります　ご注意ください
 
 NovaDefender AntiCheat for minecraft bedrock(以下 本アドオン)を使用することで、下記の利用規約に同意したものとみなします。
 
