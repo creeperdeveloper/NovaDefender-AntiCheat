@@ -1,8 +1,8 @@
 let grade = "小4";
 let saku = "作";
 let official_support_server = "https://discord.gg/arW5kCW2P8";
-let view_data = true;
-let server_view_data = false;
+let view_data = false;
+let server_view_data = true;
 
 export function getgrade() {
   if (view_data == true) {
