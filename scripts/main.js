@@ -3,7 +3,7 @@ import * as ui from "@minecraft/server-ui";
 import * as data from "data.js";
 import * as action from "action.js";
 let readmes =
-  "NovaDefenderの改造、自己制作発言は禁止です。 \n\nこのアドオンによって発生した損害については一切の責任を問いません。\n\n機能作れとか言わないでください。（提案は";
+  "NovaDefenderの改造、自己制作発言は禁止です。 \n\nこのアドオンによって発生した損害については一切の責任を問いません。\n\n機能作れとか言わないでください()（提案はして欲しいです（逆に）)";
 
 let changelog_list = [
   { name: "changelog 機能追加", disp: " ", time: "2025/3/11" },
@@ -51,7 +51,7 @@ let abouts = [
 let elapsedTicks = 0;
 let ms = true;
 let msc = 0;
-let v = "v1.0.7-beta";
+let v = "v1.2.3-beta";
 let tickCount = 0;
 let lastTime = Date.now();
 let currentTPS = 20;
@@ -181,6 +181,11 @@ let command_list = {
   site: {
     disp: "NovaDefender AntiCheatに関連するサイトURLを表示します。",
     syntax: `site`,
+    permission: "operator",
+  },
+  command: {
+    disp: "コマンドを実行します。",
+    syntax: `command [command: String]`,
     permission: "operator",
   },
 };
@@ -1466,27 +1471,27 @@ server.system.runInterval(() => {
 });
 
 //respawnsystem | minecraft:command_block_minecart
-server.system.runInterval(() => {
-  for (const dimension of ["overworld", "nether", "the_end"]) {
-    const entities = server.world.getDimension(dimension).getEntities();
+// server.system.runInterval(() => {
+//   for (const dimension of ["overworld", "nether", "the_end"]) {
+//     const entities = server.world.getDimension(dimension).getEntities();
 
-    for (const entity of entities) {
-      if (
-        entity.typeId === "minecraft:command_block_minecart" &&
-        entity.hasTag("nova:respawn_complete") == false
-      ) {
-        let x = entity.location.x;
-        let y = entity.location.y + 1;
-        let z = entity.location.z;
-        entity.teleport({ x: x, y: -100, z: z });
-        const newNpc = server.world
-          .getDimension(dimension)
-          .spawnEntity("minecraft:command_block_minecart", { x, y, z });
-        newNpc.addTag("nova:respawn_complete");
-      }
-    }
-  }
-});
+//     for (const entity of entities) {
+//       if (
+//         entity.typeId === "minecraft:command_block_minecart" &&
+//         entity.hasTag("nova:respawn_complete") == false
+//       ) {
+//         let x = entity.location.x;
+//         let y = entity.location.y + 1;
+//         let z = entity.location.z;
+//         entity.teleport({ x: x, y: -100, z: z });
+//         const newNpc = server.world
+//           .getDimension(dimension)
+//           .spawnEntity("minecraft:command_block_minecart", { x, y, z });
+//         newNpc.addTag("nova:respawn_complete");
+//       }
+//     }
+//   }
+// });
 
 //undefined回避
 server.system.runInterval(() => {
@@ -1596,26 +1601,26 @@ server.system.runInterval(() => {
 });
 
 //respawnsystem | npc
-server.system.runInterval(() => {
-  for (const dimension of ["overworld", "nether", "the_end"]) {
-    const entities = server.world.getDimension(dimension).getEntities();
+// server.system.runInterval(() => {
+//   for (const dimension of ["overworld", "nether", "the_end"]) {
+//     const entities = server.world.getDimension(dimension).getEntities();
 
-    for (const entity of entities) {
-      if (
-        entity.typeId === "minecraft:npc" &&
-        entity.hasTag("nova:respawn_complete") == false
-      ) {
-        const { x, y, z } = entity.location;
-        entity.teleport({ x: x, y: -100, z: z });
-        // console.log("test");
-        const newNpc = server.world
-          .getDimension(dimension)
-          .spawnEntity("minecraft:npc", { x, y, z });
-        newNpc.addTag("nova:respawn_complete");
-      }
-    }
-  }
-});
+//     for (const entity of entities) {
+//       if (
+//         entity.typeId === "minecraft:npc" &&
+//         entity.hasTag("nova:respawn_complete") == false
+//       ) {
+//         const { x, y, z } = entity.location;
+//         entity.teleport({ x: x, y: -100, z: z });
+//         // console.log("test");
+//         const newNpc = server.world
+//           .getDimension(dimension)
+//           .spawnEntity("minecraft:npc", { x, y, z });
+//         newNpc.addTag("nova:respawn_complete");
+//       }
+//     }
+//   }
+// });
 
 //maxspeed設定
 function setmaxspeed(player) {
@@ -2853,83 +2858,36 @@ server.world.beforeEvents.chatSend.subscribe((ev) => {
   }
 });
 
-// server.world.afterEvents.playerPlaceBlock.subscribe((ev) => {
+server.world.afterEvents.playerPlaceBlock.subscribe((ev) => {
+  let player = ev.player;
+  if (player.getDynamicProperty("nova:place_cancel") == true) {
+    setBlockToAir(ev.block.x, ev.block.y, ev.block.z, ev.block.dimension.id);
 
-//   let player = ev.player;
-//   if (player.getDynamicProperty("nova:place_cancel") == true) {
-//     setBlockToAir(ev.block.x, ev.block.y, ev.block.z, ev.block.dimension.id);
-
-//     server.system.runTimeout(() => {
-//       player.setDynamicProperty("nova:place_cancel", false);
-//     }, 20);
-//   } else {
-//     if (getdp("nova:place_search_count") == undefined) {
-//       setdp("nova:place_search_count", 0);
-//     }
-//     let log = `placelogs ｜ ${ev.player.name} ${getjptime()} ${
-//       ev.block.location.x
-//     } ${ev.block.location.y} ${ev.block.location.z} ${ev.block.typeId}`;
-//     setdp(
-//       `p ${ev.block.location.x} ${ev.block.location.y} ${ev.block.location.z}`,
-//       log
-//     );
-//     // server.world.sendMessage(
-//     //   `${ev.block.location.x} ${ev.block.location.y} ${ev.block.location.z}`
-//     // );
-//     let id = getdp("nova:place_search_count") + 1;
-//     setdp(
-//       `nova:p_id ${id}`,
-//       `${ev.block.location.x} ${ev.block.location.y} ${ev.block.location.z}`
-//     );
-//     setdp("nova:place_search_count", id);
-//     // server.world.sendMessage(String(id));
-//   }
-// });
-
-//place_log_removed_system
-server.system.runInterval(() => {
-  setdp("nova:old_place_count", 0);
-
-  let max_save_log = 100;
-
-  if (getdp("nova:place_search_count") > max_save_log) {
-    let count = getdp("nova:place_search_count");
-    setdp("nova:place_search_count", count - 1);
-    let old_place_count = getdp("nova:old_place_count");
-    let place_count = getdp("nova:place_search_count");
-    let main_id = old_place_count - place_count;
-    let xyz = getdp(`nova:p_id ${main_id}`);
-    // console.log(
-    //   `old_count: ${old_place_count} / new_count: ${getdp(
-    //     "nova:place_search_count"
-    //   )}`
-    // );
-
-    setdp("nova:old_place_count", count);
-    setdp(`p ${xyz}`);
-
-    //debug
-    // command(
-    //   `title @a actionbar old_count: ${old_place_count} / count: ${count} / new_count: ${getdp(
-    //     "nova:place_search_count"
-    //   )} / removed log location: ${xyz} / id: ${main_id}`
-    // );
+    server.system.runTimeout(() => {
+      player.setDynamicProperty("nova:place_cancel", false);
+    }, 20);
+  } else {
+    if (getdp("nova:place_search_count") == undefined) {
+      setdp("nova:place_search_count", 0);
+    }
+    let log = `block: ${ev.block.typeId} players: ${
+      ev.player.name
+    } time: ${getjptime()} location: ${ev.block.location.x} ${
+      ev.block.location.y
+    } ${ev.block.location.z} ${ev.block.typeId}`;
+    setdp(
+      `p ${ev.block.location.x} ${ev.block.location.y} ${ev.block.location.z}`,
+      log
+    );
   }
 });
 
 server.world.beforeEvents.playerBreakBlock.subscribe((ev) => {
-  if (
-    ev.itemStack !== undefined &&
-    ev.itemStack.nameTag == "nova:search.place"
-  ) {
-    return;
-  }
-  let log = `[§a§lNovaDefender§r]§c breaklogs ｜ ${
+  let log = `block: ${ev.block.typeId} players: ${
     ev.player.name
-  } ${getjptime()} ${ev.block.location.x} ${ev.block.location.y} ${
-    ev.block.location.z
-  } ${ev.block.typeId}`;
-
+  } time: ${getjptime()} location: ${ev.block.location.x} ${
+    ev.block.location.y
+  } ${ev.block.location.z}`;
   setdp(
     `b ${ev.block.location.x} ${ev.block.location.y} ${ev.block.location.z}`,
     log
@@ -3275,7 +3233,7 @@ function place_searcher_form(player) {
         return;
       }
       let log = getdp(`p ${String(response.formValues[0])}`);
-      player.sendMessage("[§lNovaDefender§r] §llogが見つかりました。 " + log);
+      player.sendMessage("[§lNovaDefender§r] §aPlace Searcher : " + log);
     })
     .catch((error) => {
       player.sendMessage("エラー: " + error.message);
@@ -4482,7 +4440,7 @@ function break_search(player) {
         return;
       }
       player.sendMessage(
-        "§a§l[NovaDefender] break searcher ログが見つかりました : " +
+        "[§a§lNovaDefender§r] §aBreak Searcher: " +
           getdp(`b ${String(response.formValues[0])}`)
       );
     })
