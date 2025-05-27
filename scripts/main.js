@@ -1727,11 +1727,7 @@ function killaura_processing_setting(player) {
 //reach_setting
 function reach_setting(player) {
   const form = new ui.ModalFormData();
-  form.textField(
-    "§lリーチを入力してください",
-    " ",
-    String(getdp("nova:maxattack_distance"))
-  );
+  form.textField("§lリーチを入力してください", " ");
   form
     .show(player)
     .then((response) => {
