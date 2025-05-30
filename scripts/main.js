@@ -410,12 +410,8 @@ function over_enchantment_processing(player) {
           over_enchantment_setting(player);
           break;
         case 3:
-          player.sendMessage(
-            "BAN機能は開発中です。 現在使うことができません。"
-          );
-          server.system.runTimeout(() => {
-            over_enchantment_setting(player);
-          }, 40);
+          setdp("nova:over_enchantment_processing", 3);
+          over_enchantment_setting(player);
           break;
         case 4:
           over_enchantment_setting(player);
@@ -555,8 +551,7 @@ function overenchantment_del(player) {
             `${player.name} を 不正なエンチャントレベルを検知したためkickしました。 (${item.id} / ${item.level} / ${itemStack.typeId})`
           );
         } else if (processing_level == 3) {
-          // player.setDynamicProperty("nova:ban", true);
-          action.opnotfi("BAN機能は開発中です。 現在使うことができません。");
+          banadd(player.name);
           container.setItem(slot, null);
           server.world.sendMessage(
             `[§a§lNovaDefender§r] 不正なエンチャントレベルを検知しました。\n §p- §r${player.name}\n §p- ${item.id} / ${item.level} / ${itemStack.typeId}§r`
@@ -577,29 +572,6 @@ server.system.runInterval(() => {
     });
   }
 });
-
-//banシステム | 開発中
-// server.system.runInterval(() => {
-//   server.world.getPlayers().forEach((player) => {
-//     if (
-//       player.getDynamicProperty("nova:ban") == true ||
-//       player.getDynamicProperty("nova:ban") !== undefined
-//     ) {
-//       player.setDynamicProperty("nova:ban", false);
-//       let ban_list = JSON.parse(getdp("nova:ban_list"));
-//       ban_list.push(`${player.name}`);
-//       setdp(JSON.stringify(ban_list));
-//     }
-//   });
-// });
-
-// server.system.runInterval(() => {
-//   server.world.getPlayers().forEach((player) => {
-//     if (JSON.parse(getdp("nova:ban_list")).includes(`${player.name}`) == true) {
-//       command(`kick ${player.name} §lkicked by NovaDefender\n §r§pType: §rBan`);
-//     }
-//   });
-// });
 
 function allop_notfi(message) {
   server.world.getPlayers().forEach((player) => {
@@ -1892,7 +1864,6 @@ server.world.beforeEvents.chatSend.subscribe((ev) => {
 //作成中 | banコマンド
 server.world.beforeEvents.chatSend.subscribe((ev) => {
   if (ev.message.startsWith(";ban")) {
-    let banlist = getdp("nova:banlist");
     ev.cancel = true;
     if (
       !ev.sender.getDynamicProperty("nova:operator") ||
@@ -1914,7 +1885,7 @@ server.world.beforeEvents.chatSend.subscribe((ev) => {
       return;
     }
     let targetplayer = getPlayerByName(playername);
-    banlist.push(targetplayer.name);
+    banadd(targetplayer.name);
     player.sendMessage(
       `[§a§lNovaDefender] §2command completed: §e${playername}§r §2をbanしました。 §r(§7response completed.§r)`
     );
@@ -2297,6 +2268,26 @@ function Noitemsetting_forms(player, item) {
       "[§lNovaDefender§r] §l" +
         String(response.formValues[0]) +
         "を禁止アイテムに追加しました。"
+    );
+  });
+}
+
+function banadd_form(player) {
+  const form = new ui.ModalFormData();
+  form.textField("§lゲーマータグを入力してください", "");
+  form.show(player).then((response) => {
+    if (response.canceled) {
+      return;
+    }
+    if (response.formValues[0] === "") {
+      return;
+    }
+    banadd(response.formValues[0]);
+
+    player.sendMessage(
+      "[§a§lNovaDefender§r] §l" +
+        String(response.formValues[0]) +
+        "をBANしました。"
     );
   });
 }
@@ -2787,23 +2778,10 @@ server.world.afterEvents.entityHitEntity.subscribe((ev) => {
         }
       });
     } else if (getdp("nova:cpsmax_processing") == 3) {
-      action.opnotfi("BAN機能は開発中です。 現在使うことができません。");
+      banadd(player.name);
       server.world.sendMessage(
         `[§a§lNovaDefender§r] §v設定以上のCPSを検知しました。\n §p${player.name}\n §c${cpscount}cps`
       );
-      // player.setDynamicProperty("nova:ban", true);
-      // server.world.getPlayers().forEach((players) => {
-      //   if (
-      //     players.getDynamicProperty("nova:operator") == true &&
-      //     players.getDynamicProperty("nova:operator") !== undefined
-      //   ) {
-      //     players.sendMessage(
-      //       `[§a§lNovaDefender§r] ${player.name} を CPS制限でbanしました。 (${cpscount}cps)`
-      //     );
-      //   } else {
-      //     return;
-      //   }
-      // });
     }
   }
 
@@ -3052,6 +3030,7 @@ async function nova_hub(player) {
   form.button("§lログ / log", "textures/items/book_normal");
   form.button("§l変更履歴 / Changelog", "textures/ui/copy");
   form.button("§l概要 / About", "textures/items/chalkboard_large");
+  form.button("§lBAN管理 / BAN management", "textures/blocks/barrier");
 
   form
     .show(player)
@@ -3074,6 +3053,9 @@ async function nova_hub(player) {
           break;
         case 5:
           about(player);
+          break;
+        case 6:
+          banlist(player);
           break;
         default:
           break;
@@ -3298,10 +3280,68 @@ function all_pl(player) {
     );
 }
 
-// 名前付きアイテムを付与する関数
+function banlist(player) {
+  const form = new ui.ActionFormData();
+  form.title("§a§lNovaDefender controlpanel");
+  getbanlist().forEach((players) => {
+    form.button(`§a${players}`);
+  });
+  form.button("§a追加", "textures/ui/color_plus");
+  form.button("§a戻る", "textures/ui/realms_red_x");
+  form.show(player).then((response) => {
+    let length = 0;
+    if (getbanlist().length == 0) {
+      length = -1;
+    } else {
+      length = getbanlist().length;
+    }
+    if (
+      server.world.getPlayers()[response.selection] === undefined ||
+      response.selection == getbanlist().length + 2
+    ) {
+      nova_hub(player);
+      return;
+    } else if (response.selection == getbanlist().length) {
+      banadd_form(player);
+      return;
+    } else {
+      banremove_ui(player, getbanlist()[response.selection]);
+      server.world.sendMessage(getbanlist()[response.selection]);
+      return;
+    }
+  });
+  // .catch((error) =>
+  //   player.sendMessage("An error occurred: " + error.message)
+  // );
+}
+
+async function banremove_ui(player, type) {
+  // メソッドチェーンでまとめて定義
+  const form = new ui.ActionFormData()
+    .title("§a§lNovaDefender controlpanel")
+    .button("§aBAN解除")
+    .button("§a戻る");
+
+  const res = await form.show(player);
+  if (res.canceled) return;
+
+  switch (res.selection) {
+    case 0:
+      banremove(type);
+      banlist(player);
+      break;
+    case 1:
+      banlist(player);
+      break;
+    default:
+      banlist(player);
+      break;
+  }
+}
+
 function giveNamedItem(playerName) {
   let targetPlayer = getPlayerByName(playerName);
-  const item = new server.ItemStack("minecraft:paper", 1); // アイテムIDと数量
+  const item = new server.ItemStack("minecraft:paper", 1);
   item.setLore(["§7必要権限: operator"]);
   item.nameTag = "[§a§lNovaDefender§r] パネルを開く";
 
@@ -4039,14 +4079,10 @@ function player_setting(player, players) {
           }
 
         case 4:
-          // if (response.selection === 4) {
-          //   let commands = server.world.getPlayers()[0];
-          //   command(`tag ${players.name} add nova:ban`);
-          //   player.sendMessage(
-          //     `[§a§lNovaDefender§r] ${players.name}をbanしました`
-          //   );
-          // }
-
+          banadd(players.name);
+          player.sendMessage(
+            `[§a§lNovaDefender§r] §p${players.name} §aをbanしました。`
+          );
           break;
         case 5:
           command(`tp ${player.name} ${players.name}`);
@@ -4422,6 +4458,54 @@ server.world.beforeEvents.chatSend.subscribe((ev) => {
     }
   }
 });
+
+server.system.runInterval(() => {
+  if (getdp("nova:banlist") == undefined) {
+    setdp("nova:banlist", JSON.stringify([]));
+  }
+});
+
+function banadd(player) {
+  let banlist = JSON.parse(getdp("nova:banlist"));
+  if (player.name == undefined) {
+    banlist.push(player);
+  } else {
+    banlist.push(player.name);
+  }
+  setdp("nova:banlist", JSON.stringify(banlist));
+}
+
+server.system.runInterval(() => {
+  let banlist = JSON.parse(getdp("nova:banlist"));
+  banlist.forEach((data) => {
+    server.world.getPlayers().forEach((player) => {
+      if (data == player.name && data != getdp("nova:owner")) {
+        command(
+          `kick ${player.name} "§l§abanned by NovaDefender AntiCheat\n §pあなたはbanされています。"`
+        );
+      } else {
+        return;
+      }
+    });
+  });
+});
+
+function getbanlist() {
+  return JSON.parse(getdp("nova:banlist"));
+}
+
+function banremove(player) {
+  let banlist = JSON.parse(getdp("nova:banlist"));
+  let res = [];
+  banlist.forEach((data) => {
+    if (data === player) {
+      return;
+    } else {
+      res.push(data);
+    }
+  });
+  setdp("nova:banlist", JSON.stringify(res));
+}
 
 //breaksearcher
 function break_search(player) {

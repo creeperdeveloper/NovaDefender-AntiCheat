@@ -5,9 +5,9 @@
     "description": "多機能で使いやすいアンチチートアドオンです。\nCreated By FlimsyDeer05833 / creeper_developer\n\n\nfunction nova/startで初期セットアップを行ってください",
     "uuid": "7beaaa9b-8769-4aa4-8ad0-288ff36260ad",
     "version": [
-      0,
       1,
-      0
+      2,
+      4
     ],
     "min_engine_version": [
       1,
