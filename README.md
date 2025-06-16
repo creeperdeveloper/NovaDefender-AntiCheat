@@ -1,30 +1,18 @@
+### Thank you for downloading!
+
+
 # NovaDefender AntiCheat for Bedrock
 
-### **Thank you for downloading!**
 
----
-
-## About this Addon / このアドオンについて
-
-This addon is an anti-cheat tool designed for Minecraft Bedrock Edition.
+## このアドオンについて / About this addon
 
 このアドオンはマインクラフト統合版向けに作られたアンチチートアドオンです。
 
----
+--------------------------------------------
 
-## Main Features / 主な機能
+This addon is an anti-cheat tool designed for Minecraft Bedrock Edition.
 
-- Configuration via UI  
-- Detection of prohibited items in inventory  
-- Removal of prohibited entities  
-- Speed limit settings  
-- Killaura detection  
-- Detection of cbe / nbt modifications  
-- Over-enchantment detection  
-- Block break logs  
-- Block place logs (liquid placement is not supported)  
-
------------------------------------------------
+## 主な機能 / Main Features
 
 - UI上でのアドオンの設定  
 - 禁止アイテムの所持検知  
@@ -34,29 +22,39 @@ This addon is an anti-cheat tool designed for Minecraft Bedrock Edition.
 - cbe / nbtの検知  
 - オーバエンチャントの検知  
 - 破壊ログ  
-- 設置ログ（液体は非対応）  
+- 設置ログ（液体は非対応）
 
----
+--------------------------------------------
 
-## Terms of Use / 利用規約
+- Configuration via UI  
+- Detection of prohibited items in inventory  
+- Removal of prohibited entities  
+- Speed limit settings  
+- Killaura detection  
+- Detection of cbe / nbt modifications  
+- Over-enchantment detection  
+- Block break logs  
+- Block place logs (liquid placement is not supported)
 
-- Modification of the addon is prohibited.  
-- Server installation (untested) is allowed.  
-- Redistribution of the addon is prohibited.  
-- No responsibility is taken for any damages caused by this addon.  
-- Streaming and video content creation is permitted.  
-- When posting videos related to NovaDefender, please include a link in the description if possible.  
+## 利用規約 / Terms of Use
 
 - アドオンの改造は禁止です。  
 - サーバー導入（未検証）は可能です。  
 - アドオンの二次配布は禁止です。  
 - このアドオンによって発生した損害については一切の責任を問いません。  
 - 配信はOKです。  
-- NovaDefenderに関連する動画を投稿する場合は、できれば概要欄にリンクを張ってほしいです。  
+- NovaDefenderに関連する動画を投稿する場合はできれば概要欄にリンクを張ってほしいです。
 
----
+--------------------------------------------
 
-## License / ライセンス
+- Modification of the addon is prohibited.  
+- Server installation (untested) is allowed.  
+- Redistribution of the addon is prohibited.  
+- No responsibility is taken for any damage caused by this addon.  
+- Streaming and content creation are allowed.  
+- If posting videos related to NovaDefender, please include a link in the description if possible.
+
+## ライセンス / License
 
 GP3 License (Modified MIT with Attribution and Patent Grant)
 
@@ -85,68 +83,101 @@ particular purpose, and noninfringement.
 4. You agree not to assert or enforce any patent claims against any party  
 for using the Software or derivative works thereof.
 
----
-
-## Notes / 注意事項
-
-- This addon is in beta. Malfunctions may occur.  
-- It is recommended to back up your world before use.  
+## 注意事項 / Precautions
 
 - このアドオンはベータ版です。何かしらの誤作動がある可能性があります。  
-- 誤作動がある場合があるので、ワールドバックアップを取ることを推奨します。  
+- 誤作動がある場合があるので、ワールドバックアップを取ることを推奨します。
 
----
+--------------------------------------------
 
-## Usage / 使い方
+- This addon is in beta and may have some malfunctions.  
+- It is recommended to back up your world before use due to possible errors.
 
-Before installing in your world, enable Education Edition, Beta API, and future Creator Features.
 
-After installation, run `function nova/start`. A setup form will appear; follow the instructions to gain operator permissions.  
+
+## 使い方 / How to use
+
+ワールドに導入する前に、Education Edition、ベータAPI、今後のクリエイター機能を有効にしてください。
+
+ワールドに導入したら、function nova/start を実行してください。セットアップフォームが表示され、画面に従うとオペレーター権限が付与されます。  
+`;help` でコマンドリストを表示可能です！
+
+- NovaDefenderのオペレーター権限とマインクラフトのオペレーター権限は別です。  
+- 初期状態のprefixは `;` です。`op` コマンドを使いたい場合は `;op` と実行してください。  
+- 空白のあるプレイヤー名を指定する際は、`""` は不要です。
+
+--------------------------------------------
+
+Before adding to your world, enable Education Edition, Beta API, and upcoming Creator features.
+
+After installation, run `function nova/start`. A setup form will appear, and following it grants operator permissions.  
 Use `;help` to display the command list!
 
-*Note:* NovaDefender operator permissions are separate from Minecraft operator permissions.  
-*Note:* The default command prefix is `;`. Use `;op` to execute the op command.  
-*Note:* Player names with spaces do not require quotation marks.
+- NovaDefender operator permissions are separate from Minecraft operator permissions.  
+- The default command prefix is `;`. Use `;op` to run the op command.  
+- Player names with spaces do not require quotes.
 
----
 
-## Commands / コマンド
+## コマンド / Command
 
 - `help`  
-  Displays the list of commands.
+  コマンドリストを表示します。
 
 - `data [player: String]`  
-  Shows information of the specified player. If no player is specified, shows info of the command executor. Operator-only command.
+  指定したプレイヤーの情報を表示します。指定しない場合は実行者の情報が表示されます。管理者専用。
 
 - `op [player: String]`  
-  Grants operator permissions to the specified player. Operator-only command.
+  指定したプレイヤーにオペレーター権限を付与します。管理者専用。
 
 - `deop [player: String]`  
-  Revokes operator permissions from the specified player. If no player is specified, the executor is targeted. Operator-only command.
+  指定したプレイヤーからオペレーター権限を奪います。指定なしなら実行者が対象。管理者専用。
 
 - `item`  
-  Obtains the item to open the settings UI.
+  設定UIを開くアイテムを取得します。管理者専用。
 
 - `setting`  
-  Opens the settings UI. Please close chat immediately after running. Operator-only command.
+  設定UIを表示します。実行後チャットを閉じてください。管理者専用。
+  
+--------------------------------------------
 
-- *etc...*  
-  More commands available. Use the addon's `help` command for details.
+- `help`  
+  Displays the command list.
 
----
+- `data [player: String]`  
+  Shows information of the specified player. Shows executor’s info if none specified. Admin only.
 
-## Changelog / 変更履歴
+- `op [player: String]`  
+  Grants operator permissions to the specified player. Admin only.
 
-v1.2.3 (including updates since v1.0.0)
+- `deop [player: String]`  
+  Removes operator permissions from the specified player. If none specified, affects executor. Admin only.
 
-- Some addon commands now support slash commands.  
-- Player info screen allows game mode changes.  
-- `command` command added to execute commands from NovaDefender.  
-- Inventory rewrite features added: clear all and clear ender chest all.  
+- `item`  
+  Gets the item to open the settings UI. Admin only.
+
+- `setting`  
+  Opens the settings UI. Close chat after running. Admin only.
+
+## 変更履歴 / ChangeLog
+
+v1.2.3 (実際はv1.0.0から)
+
+- 一部コマンドがスラッシュコマンド対応。  
+- プレイヤー情報画面からゲームモード変更可能に。  
+- `command` コマンドでNovaDefenderからコマンド実行可能に。  
+- インベントリ書き換え機能に全クリア、エンダーチェスト全クリアを追加。  
+- クラフターズコロニーに公開。
+
+バグ報告や機能要望は歓迎です。  
+
+--------------------------------------------
+
+v1.2.3 (Actually since v1.0.0)
+
+- Some commands now support slash commands.  
+- Game mode can be changed from the player info screen.  
+- Commands can be executed from NovaDefender via the `command` command.  
+- Added inventory clear and ender chest clear functions.  
 - Published on Crafters Colony.
 
----
-
-If you find any typos, bugs, or have feature requests, please leave a comment!
-
-*Note:* Ban functionality is under development. Please wait for future updates.
+Bug reports and feature requests are welcome.
