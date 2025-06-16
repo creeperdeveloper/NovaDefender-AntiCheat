@@ -24,6 +24,8 @@ This addon is an anti-cheat tool designed for Minecraft Bedrock Edition.
 - Block break logs  
 - Block place logs (liquid placement is not supported)  
 
+-----------------------------------------------
+
 - UI上でのアドオンの設定  
 - 禁止アイテムの所持検知  
 - 禁止エンティティの削除  
