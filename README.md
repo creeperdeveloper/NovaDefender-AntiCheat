@@ -1,78 +1,150 @@
-この度は NovaDefender AntiCheat for minecraft bedrock を導入して頂き誠にありがとうございます
+# NovaDefender AntiCheat for Bedrock
 
-# 注意事項
+### **Thank you for downloading!**
 
-- アドオンはベータ版です。　とくにログ機能に関してはバグがあります　ご注意ください
+---
 
-NovaDefender AntiCheat for minecraft bedrock(以下 本アドオン)を使用することで、下記の利用規約に同意したものとみなします。
+## About this Addon / このアドオンについて
 
-# 利用規約
+This addon is an anti-cheat tool designed for Minecraft Bedrock Edition.
 
-- アドオンの改造は禁止です
-- アドオンの二次配布　自己制作発言は禁止です
-- 本アドオンからコードをコピペすることは禁止です
-- このアドオンによって発生した損害については一切の責任を問いません
-- 本アドオンは開発中です。 予期せぬ動作がある可能性があります。
+このアドオンはマインクラフト統合版向けに作られたアンチチートアドオンです。
 
-# 使い方
+---
 
-まずワールド設定からベータ版と教育版の項目を有効にしてください。
+## Main Features / 主な機能
 
-そうしたらアドオンを有効化してワールドを開いてください
+- Configuration via UI  
+- Detection of prohibited items in inventory  
+- Removal of prohibited entities  
+- Speed limit settings  
+- Killaura detection  
+- Detection of cbe / nbt modifications  
+- Over-enchantment detection  
+- Block break logs  
+- Block place logs (liquid placement is not supported)  
 
-次にセットアップを行うため、「function nova/start」 を実行してください。 セットアップウィンドウが表示されます。　そうしたら画面の指示に従ってセットアップを進めてください。　セットアップが完了したらオペレーター権限が付与されます
-これにより NovaDefender を操作できるようになります。基本的なコマンドは以下の通りです。
+- UI上でのアドオンの設定  
+- 禁止アイテムの所持検知  
+- 禁止エンティティの削除  
+- 上限速度の設定  
+- Killaura検知  
+- cbe / nbtの検知  
+- オーバエンチャントの検知  
+- 破壊ログ  
+- 設置ログ（液体は非対応）  
 
-※初期状態のコマンド頭文字は 「;」 です <頭文字><コマンド名> <引数（必要だったら）>で実行できます
+---
 
-## コマンド
+## Terms of Use / 利用規約
 
-### help
+- Modification of the addon is prohibited.  
+- Server installation (untested) is allowed.  
+- Redistribution of the addon is prohibited.  
+- No responsibility is taken for any damages caused by this addon.  
+- Streaming and video content creation is permitted.  
+- When posting videos related to NovaDefender, please include a link in the description if possible.  
 
-すべてのコマンド一覧を表示します。 help の後にコマンド名を入れる事でコマンドの詳細を調べられます。 (構文: help [command: String])
+- アドオンの改造は禁止です。  
+- サーバー導入（未検証）は可能です。  
+- アドオンの二次配布は禁止です。  
+- このアドオンによって発生した損害については一切の責任を問いません。  
+- 配信はOKです。  
+- NovaDefenderに関連する動画を投稿する場合は、できれば概要欄にリンクを張ってほしいです。  
 
-### data
+---
 
-指定したプレイヤーの情報を表示します。 (構文: data [player: String])
+## License / ライセンス
 
-### tps
+GP3 License (Modified MIT with Attribution and Patent Grant)
 
-ワールドの tps を表示します。 (構文: tps)
+Copyright (c) 2025 creeper_dev
 
-### setting
+Permission is hereby granted, free of charge, to any person obtaining a copy  
+of this software and associated documentation files (the "Software"), to deal  
+in the Software without restriction, including without limitation the rights  
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell  
+copies of the Software, subject to the following conditions:
 
-設定画面を表示します。　実行した後にチャットを直ぐに閉じてください。 (構文: setting)
+1. The above copyright notice and this permission notice shall be included in all  
+copies or substantial portions of the Software.
 
-### op
+2. When redistributing or publicly displaying the Software or any derivative works,  
+you must include the following attribution information clearly and prominently:
 
-特定のプレイヤーに管理者権限を付与します。 (構文: op [player: String])
+- Author: creeper_dev  
+- Reference: NovaDefender AntiCheat  
+- URL: https://minecraft-mcworld.com/147025/
 
-### deop
+3. The Software is provided "as is", without warranty of any kind, express or implied,  
+including but not limited to the warranties of merchantability, fitness for a  
+particular purpose, and noninfringement.
 
-特定のプレイヤーから管理者権限を奪略します。　あんまり自分に向かって発動しないほうがいいかもです (構文: deop [player: String])
+4. You agree not to assert or enforce any patent claims against any party  
+for using the Software or derivative works thereof.
 
-### item
+---
 
-設定画面を右クリックで開けるアイテルを取得するコマンドです (構文: item)
+## Notes / 注意事項
 
-### kick
+- This addon is in beta. Malfunctions may occur.  
+- It is recommended to back up your world before use.  
 
-特定のプレイヤーを kick します。 (構文: kick [player: String])
+- このアドオンはベータ版です。何かしらの誤作動がある可能性があります。  
+- 誤作動がある場合があるので、ワールドバックアップを取ることを推奨します。  
 
-### about
+---
 
-アドオンについて表示します (構文: about)
+## Usage / 使い方
 
-### version
+Before installing in your world, enable Education Edition, Beta API, and future Creator Features.
 
-バージョンを表示します (構文: version)
+After installation, run `function nova/start`. A setup form will appear; follow the instructions to gain operator permissions.  
+Use `;help` to display the command list!
 
-コマンドはどんどん追加します!
+*Note:* NovaDefender operator permissions are separate from Minecraft operator permissions.  
+*Note:* The default command prefix is `;`. Use `;op` to execute the op command.  
+*Note:* Player names with spaces do not require quotation marks.
 
-### afk
+---
 
-放置状態を変更します
+## Commands / コマンド
 
-### mute
+- `help`  
+  Displays the list of commands.
 
-プレイヤーのミュートを切り替えます (構文: mute [player: String])
+- `data [player: String]`  
+  Shows information of the specified player. If no player is specified, shows info of the command executor. Operator-only command.
+
+- `op [player: String]`  
+  Grants operator permissions to the specified player. Operator-only command.
+
+- `deop [player: String]`  
+  Revokes operator permissions from the specified player. If no player is specified, the executor is targeted. Operator-only command.
+
+- `item`  
+  Obtains the item to open the settings UI.
+
+- `setting`  
+  Opens the settings UI. Please close chat immediately after running. Operator-only command.
+
+- *etc...*  
+  More commands available. Use the addon's `help` command for details.
+
+---
+
+## Changelog / 変更履歴
+
+v1.2.3 (including updates since v1.0.0)
+
+- Some addon commands now support slash commands.  
+- Player info screen allows game mode changes.  
+- `command` command added to execute commands from NovaDefender.  
+- Inventory rewrite features added: clear all and clear ender chest all.  
+- Published on Crafters Colony.
+
+---
+
+If you find any typos, bugs, or have feature requests, please leave a comment!
+
+*Note:* Ban functionality is under development. Please wait for future updates.
