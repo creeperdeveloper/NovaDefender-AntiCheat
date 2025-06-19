@@ -1,8 +1,9 @@
-// import { DebugDrawer, DebugText } from "@minecraft/debug-utilities";
+import { DebugDrawer, DebugText } from "@minecraft/debug-utilities";
 import * as ui from "@minecraft/server-ui";
 import * as data from "data.js";
 import * as server from "@minecraft/server";
 import * as action from "action.js";
+import * as utils from "utils.js";
 let readmes =
   "NovaDefenderの改造、自己制作発言は禁止です。 \n\nこのアドオンによって発生した損害については一切の責任を問いません。\n\n機能作れとか言わないでください()（提案はして欲しいです（逆に）)";
 
@@ -35,6 +36,7 @@ let creater_about = "http://about.creeper.developers.f5.si";
 let official_support_server = data.getsupport();
 let official_site_url = "https://novadefender.anticheat.f5.si";
 let blacklist = ["iZet2"];
+let download_url = "https://github.com/creeperdeveloper/NovaDefender-AntiCheat";
 let grade = data.getgrade();
 let saku = data.getsaku();
 let admin = "FlimsyDeer05833";
@@ -44,32 +46,84 @@ let abouts = [
   "§sscriptAPIを使った",
   "§s多機能アンチチートアドオンです。",
   "\n\n\n\n§vdeveloper: §rFlimsyDeer05833 / creeper_developer",
-  `ダウンロード: `,
+  `§vダウンロード: §r${download_url}`,
   `§v公式サイト: §r${official_site_url}`,
   `§vサポートサーバー: §r${official_support_server}`,
   `§v作者情報: §r${creater_about}`,
 ];
 
 let elapsedTicks = 0;
-let v = "v1.2.6";
+let v = "v1.2.8";
 let tickCount = 0;
 let lastTime = Date.now();
 let currentTPS = 20;
 let joincount = 0;
 let dispct = 0;
 server.system.runInterval(() => {
+  setup_data();
+});
+
+function setup_data() {
+  if (getdp("nova:blockreach_switch") == undefined) {
+    setdp("nova:blockreach_switch", true);
+  }
+  if (getdp("nova:block_reach_detection_pushment") == undefined) {
+    setdp("nova:block_reach_detection_pushment", 1);
+  }
+  if (getdp("nova:blockreach_detection") == undefined) {
+    setdp("nova:blockreach_detection", 7);
+  }
+
+  if (getdp("nova:banlist") == undefined) {
+    setdp("nova:banlist", JSON.stringify([]));
+  }
+
+  if (getdp("nova:banreasonlist") == undefined) {
+    setdp("nova:banreasonlist", JSON.stringify([]));
+  }
+
+  if (getdp("nova:maxentityswitch") == undefined) {
+    setdp("nova:maxentityswitch", false);
+  }
+  if (getdp("nova:fly_tpback") == undefined) {
+    setdp("nova:fly_tpback", true);
+  }
+  if (getdp("nova:flyhack_activestate") == undefined) {
+    setdp("nova:flyhack_activestate", false);
+  }
+
+  if (getdp("nova:speedprocessing") == undefined) {
+    setdp("nova:speedprocessing", 0);
+  }
+  if (getdp("nova:cpsmax_processing") === undefined) {
+    setdp("nova:cpsmax_processing", 1);
+  }
+  if (getdp("nova:maxattack_distance") == undefined) {
+    setdp("nova:maxattack_distance", 6);
+  }
+  if (getdp("nova:killaura_status") == undefined) {
+    setdp("nova:killaura_status", true);
+  }
   if (getdp("nova:command_firsts") == undefined) {
     setdp("nova:command_firsts", ";");
   }
-});
-
-function setdisp(player, text) {
-  if (dispct == 0) {
-    dispct = 1;
-    command(`title ${player.name} title §r`);
-    command(
-      `titleraw ${player.name} subtitle {"rawtext":[{"text":"\n\n\n\n\n\n\n\n\n                                                            ${text} §e<<"}]}`
-    );
+  if (server.world.scoreboard.getObjective("nova:data") == undefined) {
+    server.world.scoreboard.addObjective("nova:data");
+  }
+  if (getdp("nova:autoop") == undefined) {
+    setdp("nova:autoop", true);
+  }
+  if (getdp("nova:over_enchantment_processing") == undefined) {
+    setdp("nova:over_enchantment_processing", 1);
+  }
+  if (getdp("nova:over_enchantment_get") == undefined) {
+    setdp("nova:over_enchantment_get", true);
+  }
+  if (getdp("nova:active") == undefined) {
+    setdp("nova:active", false);
+  }
+  if (getdp("nova:maxspeed") == undefined) {
+    setdp("nova:maxspeed", 40);
   }
 }
 
@@ -130,12 +184,6 @@ server.world.beforeEvents.chatSend.subscribe((ev) => {
       ev.cancel = true;
       betasystem = !betasystem;
     }
-  }
-});
-
-server.system.runInterval(() => {
-  if (server.world.scoreboard.getObjective("nova:data") == undefined) {
-    server.world.scoreboard.addObjective("nova:data");
   }
 });
 
@@ -201,6 +249,11 @@ let command_list = {
     syntax: `discord`,
     permission: "operator",
   },
+  leave: {
+    disp: "プレイヤーを強制切断させます。",
+    syntax: `leave [player: String]`,
+    permission: "operator",
+  },
   afk: {
     disp: "放置状態を切り替えます。",
     syntax: `afk`,
@@ -223,17 +276,11 @@ let command_list = {
   },
 };
 
-server.world.afterEvents.playerSpawn.subscribe((ev) => {
-  if (ev.initialSpawn && joincount == 0) {
-    console.log(`[NovaDefender AntiCheat ${v}] activation.`);
-    joincount++;
-  } else {
-    return;
-  }
-});
-
 server.system.run(() => {
   console.log(`[NovaDefender AntiCheat ${v}] activation.`);
+  server.world.sendMessage(
+    "§7このワールドにはNovaDefender AntiCheat " + v + "が導入されています"
+  );
 });
 
 server.world.beforeEvents.chatSend.subscribe((ev) => {
@@ -245,9 +292,7 @@ server.world.beforeEvents.chatSend.subscribe((ev) => {
         `§pRealTime:§r ${dispgetjptime()}\n§pWorld Elapsed Time: §r${getWorldUptime()}`
       );
     } else {
-      ev.sender.sendMessage(
-        `[§a§lNovaDefender§r] §ccommand error: 権限が存在しません。 §r(§7permission is undefined§r)`
-      );
+      utils.senderror(ev.sender, "nopermission");
     }
   }
 });
@@ -255,13 +300,7 @@ server.world.beforeEvents.chatSend.subscribe((ev) => {
 server.world.beforeEvents.chatSend.subscribe((ev) => {
   if (ev.message == `${getdp("nova:command_firsts")}version`) {
     ev.cancel = true;
-    if (getop(ev.sender) == true) {
-      ev.sender.sendMessage(`§aNovaDefender version in use is ${v}!`);
-    } else {
-      ev.sender.sendMessage(
-        `[§a§lNovaDefender§r] §ccommand error: 権限が存在しません。 §r(§7permission is undefined§r)`
-      );
-    }
+    ev.sender.sendMessage(`§aNovaDefender version in use is ${v}!`);
   }
 });
 
@@ -277,9 +316,7 @@ server.world.beforeEvents.chatSend.subscribe((ev) => {
         ` §e- §acreater about site url: §p${creater_about}`
       );
     } else {
-      ev.sender.sendMessage(
-        `[§a§lNovaDefender§r] §ccommand error: 権限が存在しません。 §r(§7permission is undefined§r)`
-      );
+      utils.senderror(ev.sender, "nopermission");
     }
   }
 });
@@ -306,7 +343,7 @@ server.world.afterEvents.chatSend.subscribe((ev) => {
 
   afk_player_list.forEach((players) => {
     if (ev.message.includes(players)) {
-      action.worldnotfi(`[§a§lNovaDefender§r] §a${players} は AFKです。`);
+      action.worldnotifi(`[§a§lNovaDefender§r] §a${players} は AFKです。`);
     }
   });
 });
@@ -369,26 +406,14 @@ server.world.beforeEvents.chatSend.subscribe((ev) => {
 server.world.beforeEvents.chatSend.subscribe((ev) => {
   if (ev.message == `${getdp("nova:command_firsts")}about`) {
     ev.cancel = true;
-    if (getop(ev.sender)) {
-      ev.cancel = true;
-      let about_view = "";
-      abouts.forEach((nakami) => {
-        about_view = about_view + nakami + `\n`;
-      });
-      ev.sender.sendMessage(
-        `§a§lNovaDefender AntiCheat ${v} \n§v------------------------§r\n${about_view}`
-      );
-    } else {
-      ev.sender.sendMessage(
-        `[§a§lNovaDefender§r] §ccommand error: 権限が存在しません。 §r(§7permission is undefined§r)`
-      );
-    }
-  }
-});
-
-server.system.runInterval(() => {
-  if (getdp("nova:autoop") == undefined) {
-    setdp("nova:autoop", true);
+    ev.cancel = true;
+    let about_view = "";
+    abouts.forEach((nakami) => {
+      about_view = about_view + nakami + `\n`;
+    });
+    ev.sender.sendMessage(
+      `§a§lNovaDefender AntiCheat ${v} \n§v------------------------§r\n${about_view}`
+    );
   }
 });
 
@@ -410,12 +435,6 @@ server.system.runInterval(() => {
       return;
     }
   }
-});
-
-server.system.run(() => {
-  server.world.sendMessage(
-    "§7このワールドにはNovaDefender AntiCheat " + v + "が搭載されています。"
-  );
 });
 
 function over_enchantment_processing(player) {
@@ -459,17 +478,12 @@ function over_enchantment_processing(player) {
     );
 }
 
-server.system.runInterval(() => {
-  if (getdp("nova:over_enchantment_processing") == undefined) {
-    setdp("nova:over_enchantment_processing", 1);
-  }
-});
 function over_enchantment_setting(player) {
   let processing = 0;
   if (getdp("nova:over_enchantment_processing") == 0) {
     processing = "none";
   } else if (getdp("nova:over_enchantment_processing") == 1) {
-    processing = "notfi";
+    processing = "notifi";
   } else if (getdp("nova:over_enchantment_processing") == 2) {
     processing = "kick";
   } else if (getdp("nova:over_enchantment_processing") == 3) {
@@ -570,24 +584,27 @@ function overenchantment_del(player) {
         } else if (processing_level == 1) {
           container.setItem(slot, null);
           server.world.sendMessage(
-            `[§a§lNovaDefender§r] 不正なエンチャントレベルを検知しました。\n §p- §r${player.name}\n §p- ${item.id} / ${item.level} / ${itemStack.typeId}§r`
+            `[§a§lNovaDefender§r] §c${player.name} §fwas detected using §cOver Enchant§f.\n§7- §fOver Enchantの使用を検知しました。 (${player.name} / ${item.id} / ${item.level} / ${itemStack.typeId})`
           );
         } else if (processing_level == 2) {
           container.setItem(slot, null);
           server.world.sendMessage(
-            `[§a§lNovaDefender§r] 不正なエンチャントレベルを検知しました。\n §p- §r${player.name}\n §p- ${item.id} / ${item.level} / ${itemStack.typeId}§r`
+            `[§a§lNovaDefender§r] §c${player.name} §fwas detected using §cOver Enchant§f.\n§7- §fOver Enchantの使用を検知しました。 (${player.name} / ${item.id} / ${item.level} / ${itemStack.typeId})`
           );
           command(
-            `kick ${player.name} §lkicked by NovaDefender\n 不正なエンチャントレベルを検知しました。\n - ${player.name} \n - ${item.id} / ${item.level} / ${itemStack.typeId}`
+            `kick "${player.name}" §cKicked by NovaDefender.\n§rOver Enchantの使用を検知したためkickしました。\n§7(${player.name} \n - ${item.id} / ${item.level} / ${itemStack.typeId})`
           );
-          allop_notfi(
-            `${player.name} を 不正なエンチャントレベルを検知したためkickしました。 (${item.id} / ${item.level} / ${itemStack.typeId})`
+          allop_notifi(
+            `${player.name} を Over Enchantの使用を検知したためkickしました。 (${item.id} / ${item.level} / ${itemStack.typeId})`
           );
         } else if (processing_level == 3) {
-          banadd(player.name);
+          banadd(
+            player.name,
+            `Over Enchant ${item.id} / ${item.level} / ${itemStack.typeId}`
+          );
           container.setItem(slot, null);
           server.world.sendMessage(
-            `[§a§lNovaDefender§r] 不正なエンチャントレベルを検知しました。\n §p- §r${player.name}\n §p- ${item.id} / ${item.level} / ${itemStack.typeId}§r`
+            `[§a§lNovaDefender§r] §c${player.name} §fwas detected using §cOver Enchant§f.\n§7- §fOver Enchantの使用を検知しました。 (${player.name} / ${item.id} / ${item.level} / ${itemStack.typeId})`
           );
         }
       }
@@ -596,9 +613,6 @@ function overenchantment_del(player) {
 }
 
 server.system.runInterval(() => {
-  if (getdp("nova:over_enchantment_get") == undefined) {
-    setdp("nova:over_enchantment_get", true);
-  }
   if (getdp("nova:over_enchantment_get") == true) {
     server.world.getPlayers().forEach((player) => {
       overenchantment_del(player);
@@ -606,7 +620,7 @@ server.system.runInterval(() => {
   }
 });
 
-function allop_notfi(message) {
+function allop_notifi(message) {
   server.world.getPlayers().forEach((player) => {
     if (player.getDynamicProperty("nova:operator") == true) {
       player.sendMessage(`[§a§lNovaDefender§r] ${message}`);
@@ -651,11 +665,11 @@ function cancel(ev) {
   ev.cancel = true;
 }
 
-function notify(text, pl) {
+function notifi(text, pl) {
   pl.sendMessage(`[§a§lNovaDefender§r] ${text}`);
 }
 
-function world_notify(text) {
+function world_notifi(text) {
   server.world.sendMessage(`[§a§lNovaDefender§r] ${text}`);
 }
 
@@ -732,13 +746,6 @@ function nova_setup_page_1(player) {
     }
   });
 }
-
-//アクティブundefinedエラー回避
-server.system.runInterval(() => {
-  if (getdp("nova:active") == undefined) {
-    setdp("nova:active", false);
-  }
-});
 
 //セットアップページを開くscriptEventReceive
 server.system.afterEvents.scriptEventReceive.subscribe((ev) => {
@@ -844,35 +851,30 @@ server.world.beforeEvents.chatSend.subscribe((ev) => {
   }
 });
 
-//flyhack検知関数
-function measureHorizontalSpeed(player) {
-  if (
-    player.getDynamicProperty("nova:operator") == true &&
-    player.getDynamicProperty("nova:operator") !== undefined
-  )
+function flyhack_detection(player) {
+  if (getop(player)) {
     return;
-  // 現在の速度を取得（ブロック/ティック単位）
+  }
   const velocity = player.getVelocity();
-
-  // 水平速度（XとZのみ）を計算（Yを無視）
   const horizontalSpeed = Math.sqrt(
     velocity.x * velocity.x + velocity.z * velocity.z
   );
-  const speedPerSecond = horizontalSpeed * 20; // 20tick = 1秒に変換
-  let speed = speedPerSecond.toFixed(2);
-  if (speed > Number(getdp("nova:fly_data_view_speed"))) {
-    server.world.getPlayers().forEach((players) => {
-      if (players.getDynamicProperty("nova:data_view") == true) {
-        setdisp(
-          player,
-          `§a${players.name}'s Speed ${speed} > ${getdp(
-            "nova:fly_data_view_speed"
-          )}`
-        );
+  const speedPerSecond = horizontalSpeed * 20;
+  let speed = sedPerSecond.toFixed(2);
+  if (speed > Nber(getdp("nova:fly_data_view_speed"))) {
+    server.worlgetPlayers().forEach((players) => {
+      if (playe.getDynamicProperty("nova:data_view") == true) {
+        return;
       }
     });
   }
-  if (speed > Number(getdp("nova:maxspeed"))) {
+  let max = getdp("nova:maxspeed");
+  if (player.isGliding) {
+    if (max < 60) {
+      max = 61;
+    }
+  }
+  if (speed > Number(max)) {
     if (getdp("nova:speedprocessing") == 0) {
       return;
     } else if (getdp("nova:speedprocessing") == 1) {
@@ -885,23 +887,16 @@ function measureHorizontalSpeed(player) {
           player.dimension
         );
       }
+
       server.world.sendMessage(
-        `[§a§lNovaDefender§r] §e${getdp(
-          "nova:maxspeed"
-        )}b/s §p以上のスピードを検知しました。\n§7 - ${
-          player.name
-        } \n§7 - ${speed}b/s`
+        `[§a§lNovaDefender§r] §c${player.name} §fwas detected using §cSpeed Hack§f.\n§7- §fSpeed Hackの使用を検知しました。 (Speed: ${speed}b/s)`
       );
     } else if (getdp("nova:speedprocessing") == 2) {
       server.world.sendMessage(
-        `[§a§lNovaDefender§r] §e${getdp(
-          "nova:maxspeed"
-        )}b/s §p以上のスピードを検知しました。\n§7 - player \n§7 - ${speed}b/s`
+        `[§a§lNovaDefender§r] §c${player.name} §fwas detected using §cSpeed Hack§f.\n§7- §fSpeed Hackの使用を検知しました。 (Speed: ${speed}b/s)`
       );
       command(
-        `kick ${player.name} §lkicked By NovaDefender\n\n§e${getdp(
-          "nova:maxspeed"
-        )}b/s §p以上のスピードを検知しました。\n§7 - player \n§7 - ${speed}b/s`
+        `kick "${player.name}" §lkicked By NovaDefender\n\nSpeed Hackの使用を検知しました。 (Speed: ${speed}b/s)`
       );
       server.world.getPlayers().forEach((players) => {
         if (
@@ -909,32 +904,29 @@ function measureHorizontalSpeed(player) {
           players.getDynamicProperty("nova:operator") !== undefined
         ) {
           players.sendMessage(
-            `[§a§lNovaDefender§r] ${player.name} を スピード制限でkickしました。 (${speed}b/s)`
+            `[§a§lNovaDefender§r] ${player.name} を Speed Hackの使用でkickしました。 (${speed}b/s)`
           );
         } else {
           return;
         }
       });
     } else if (getdp("nova:speedprocessing") == 3) {
-      action.opnotfi("BAN機能は開発中です。 現在使うことができません。");
+      banadd(player, "Speed Hackの使用を検知しました。 (Speed: ${speed}b/s)");
       server.world.sendMessage(
-        `[§a§lNovaDefender§r] §e${getdp(
-          "nova:maxspeed"
-        )}b/s §p以上のスピードを検知しました。\n§7 - player \n§7 - ${speed}b/s`
+        `[§a§lNovaDefender§r] §c${player.name} §fwas detected using §cSpeed Hack§f.\n§7- §fSpeed Hackの使用を検知しました。 (Speed: ${speed}b/s)`
       );
-      // player.setDynamicProperty("nova:ban", true);
-      // server.world.getPlayers().forEach((players) => {
-      //   if (
-      //     players.getDynamicProperty("nova:operator") == true &&
-      //     players.getDynamicProperty("nova:operator") !== undefined
-      //   ) {
-      //     players.sendMessage(
-      //       `[§a§lNovaDefender§r] ${player.name} を スピード制限でbanしました。 (${speed}b/s)`
-      //     );
-      //   } else {
-      //     return;
-      //   }
-      // });
+      server.world.getPlayers().forEach((players) => {
+        if (
+          players.getDynamicProperty("nova:operator") == true &&
+          players.getDynamicProperty("nova:operator") !== undefined
+        ) {
+          players.sendMessage(
+            `[§a§lNovaDefender§r] ${player.name} を Speed Hackの使用でbanしました。 (${speed}b/s)`
+          );
+        } else {
+          return;
+        }
+      });
     }
   }
 }
@@ -943,7 +935,7 @@ function measureHorizontalSpeed(player) {
 server.system.runInterval(() => {
   if (getdp("nova:flyhack_activestate") === true) {
     server.world.getPlayers().forEach((player) => {
-      measureHorizontalSpeed(player);
+      flyhack_detection(player);
     });
   }
 });
@@ -976,37 +968,98 @@ function deleteNoentity(id) {
   }
 }
 
+server.world.beforeEvents.chatSend.subscribe((ev) => {
+  if (ev.message.startsWith(`${getprefix()}leave `)) {
+    ev.cancel = true;
+    const args = ev.message
+      .match(/"[^"]*"|\S+/g)
+      .map((s) => s.replace(/^"|"$/g, ""));
+    let player = ev.sender;
+    if (!getop(player)) {
+      utils.senderror(player, "nopermission");
+      return;
+    } else {
+      let playername = args[1];
+      // server.world.sendMessage(String(playername));
+      if (playername === undefined) {
+        utils.senderror(player, "noplayer");
+        return;
+      }
+
+      if (getPlayerByName(playername) === undefined) {
+        utils.senderror(player, "noplayer");
+        return;
+      }
+      let targetplayer = getPlayerByName(playername);
+      player.sendMessage(
+        `[§a§lNovaDefender§r] §acommand completed: §e${playername} §aを強制切断しました。 §r(§7response completed.§r)`
+      );
+      leave(targetplayer);
+    }
+    leave();
+  }
+});
+
+function leave(player) {
+  try {
+    player.sendMessage(
+      `[§a§lNovaDefender§r] §aforced disconnection By NovaDefender AntiCheat`
+    );
+    server.system.runTimeout(() => {
+      player.triggerEvent("nd:discontent");
+    }, 20);
+  } catch (e) {
+    console.error("triggerEvent failed:", e);
+  }
+}
+
 server.system.beforeEvents.startup.subscribe((ev) => {
   ev.customCommandRegistry.registerCommand(
     {
       name: "nd:tps",
-      description: "TPSを確認します。",
+      description: "§pTPSを確認します。",
       permissionLevel: server.CommandPermissionLevel.Any,
       mandatoryParameters: [],
       optionalParameters: [],
     },
     (origin, arg) => {
-      origin.sourceEntity.sendMessage(`§pworld TPS: ${getTPS()}`);
+      origin.sourceEntity.sendMessage(`§vworld TPS: §a${getTPS()}`);
     }
   );
 
   ev.customCommandRegistry.registerCommand(
     {
       name: "nd:afk",
-      description: "AFK状態を変更します",
+      description: "§pAFK状態を変更します",
       permissionLevel: server.CommandPermissionLevel.Any,
       mandatoryParameters: [],
       optionalParameters: [],
     },
     (origin, arg) => {
-      origin.sourceEntity.sendMessage(`§pworld TPS: ${getTPS()}`);
+      let player = origin.sourceEntity;
+      player.setDynamicProperty(
+        "nova:sleep",
+        !player.getDynamicProperty("nova:sleep")
+      );
+      player.sendMessage(
+        "[§a§lNovaDefender§r] §a放置状態を §e" +
+          String(player.getDynamicProperty("nova:sleep")) +
+          "§r §aに変更しました。"
+      );
+      server.world.sendMessage(
+        "[§a§lNovaDefender§r] §e" +
+          player.name +
+          " §aの放置状態が §e" +
+          String(player.getDynamicProperty("nova:sleep")) +
+          "§r §aに変更されました。"
+      );
     }
   );
 
   ev.customCommandRegistry.registerCommand(
     {
       name: "nd:help",
-      description: "コマンド一覧を確認します。",
+      description: "§pコマンド一覧を確認します。",
       permissionLevel: server.CommandPermissionLevel.Any,
       mandatoryParameters: [],
       optionalParameters: [
@@ -1017,7 +1070,7 @@ server.system.beforeEvents.startup.subscribe((ev) => {
       let player = origin.sourceEntity;
       if (arg[0] == undefined || arg[0] == null) {
         player.sendMessage(
-          `§a--- NovaDefender AntiCheat ---\n§aコマンド頭文字: ${getdp(
+          `§a--- NovaDefender AntiCheat ---\n§aコマンドPrefix(頭文字): ${getdp(
             "nova:command_firsts"
           )}\n§cCommand:`
         );
@@ -1053,15 +1106,19 @@ server.system.beforeEvents.startup.subscribe((ev) => {
 
   ev.customCommandRegistry.registerCommand(
     {
-      name: "nd:discord",
-      description: "公式ディスコードサーバーのURLを確認します",
+      name: "nd:about",
+      description: "§pアドオンの情報を表示します",
       permissionLevel: server.CommandPermissionLevel.Any,
       mandatoryParameters: [],
       optionalParameters: [],
     },
     (origin, arg) => {
+      let about_view = "";
+      abouts.forEach((nakami) => {
+        about_view = about_view + nakami + `\n`;
+      });
       origin.sourceEntity.sendMessage(
-        `§e-- §a§lNovaDefender AntiCheat for minecraft-bedrock §e--\n\ndiscord server: ${official_support_server}`
+        `§a§lNovaDefender AntiCheat ${v} \n§r§v------------------------§r\n${about_view}`
       );
     }
   );
@@ -1069,14 +1126,14 @@ server.system.beforeEvents.startup.subscribe((ev) => {
   ev.customCommandRegistry.registerCommand(
     {
       name: "nd:site",
-      description: "NovaDefenderに関連するサイトのURLを確認します",
+      description: "§pNovaDefenderに関連するサイトのURLを確認します",
       permissionLevel: server.CommandPermissionLevel.Any,
       mandatoryParameters: [],
       optionalParameters: [],
     },
     (origin, arg) => {
       origin.sourceEntity.sendMessage(
-        `§e-- §a§lNovaDefender AntiCheat for minecraft-bedrock §e--\n\ndiscord server: ${official_support_server}\n§edeveloper about: http://about.creeper.developers.f5.si\nofficial homepage: https://novadefender.anticheat.f5.si`
+        `§e-- §a§lNovaDefender AntiCheat §r§e--\n\n§adeveloper about: http://about.creeper.developers.f5.si\n§pofficial homepage: https://novadefender.anticheat.f5.si`
       );
     }
   );
@@ -1084,7 +1141,7 @@ server.system.beforeEvents.startup.subscribe((ev) => {
   ev.customCommandRegistry.registerCommand(
     {
       name: "nd:setting",
-      description: "設定フォームを開きます。",
+      description: "§a設定フォームを開きます。",
       permissionLevel: server.CommandPermissionLevel.Admin,
       mandatoryParameters: [],
       optionalParameters: [],
@@ -1094,9 +1151,7 @@ server.system.beforeEvents.startup.subscribe((ev) => {
         if (getop(origin.sourceEntity)) {
           nova_hub(origin.sourceEntity);
         } else {
-          origin.sourceEntity.sendMessage(
-            `[§a§lNovaDefender§r] §e権限が存在しません`
-          );
+          utils.senderror(origin.sourceEntity, "nopermission");
         }
       }, 5);
     }
@@ -1105,7 +1160,7 @@ server.system.beforeEvents.startup.subscribe((ev) => {
   ev.customCommandRegistry.registerCommand(
     {
       name: "nd:item",
-      description: "設定フォームを開くアイテムを取得します。",
+      description: "§a設定フォームを開くアイテムを取得します。",
       permissionLevel: server.CommandPermissionLevel.Admin,
       mandatoryParameters: [],
       optionalParameters: [],
@@ -1115,12 +1170,10 @@ server.system.beforeEvents.startup.subscribe((ev) => {
         if (getop(origin.sourceEntity)) {
           origin.sourceEntity.setDynamicProperty("nova:givepanel", true);
           origin.sourceEntity.sendMessage(
-            `[§a§lNovaDefender§r] §aresponse completed.`
+            `[§a§lNovaDefender§r] §a管理者パネルアイテムを付与しました。 右クリックで使用できます`
           );
         } else {
-          origin.sourceEntity.sendMessage(
-            `[§a§lNovaDefender§r] §e権限が存在しません`
-          );
+          utils.senderror(origin.sourceEntity, "nopermission");
         }
       }, 5);
     }
@@ -1129,25 +1182,29 @@ server.system.beforeEvents.startup.subscribe((ev) => {
   ev.customCommandRegistry.registerCommand(
     {
       name: "nd:op",
-      description: "オペレーター権限を付与します。",
+      description: "§aオペレーター権限を付与します。",
       permissionLevel: server.CommandPermissionLevel.Admin,
       mandatoryParameters: [
-        { name: "player", type: server.CustomCommandParamType.String },
+        {
+          name: "player",
+          type: server.CustomCommandParamType.PlayerSelector,
+        },
       ],
       optionalParameters: [],
     },
     (origin, ...arg) => {
       server.system.runTimeout(() => {
         if (getop(origin.sourceEntity)) {
+          if (!arg.length == 1) {
+            utils.senderror(player, "noselector");
+          }
           let type = getPlayerByName(arg[0]);
           type.setDynamicProperty("nova:operator", true);
           origin.sourceEntity.sendMessage(
             `[§a§lNovaDefender§r] §e${arg[0]} §aにオペレーター権限を付与しました。`
           );
         } else {
-          origin.sourceEntity.sendMessage(
-            `[§a§lNovaDefender§r] §e権限が存在しません`
-          );
+          utils.senderror(origin.sourceEntity, "nopermission");
         }
       }, 5);
     }
@@ -1156,48 +1213,91 @@ server.system.beforeEvents.startup.subscribe((ev) => {
   ev.customCommandRegistry.registerCommand(
     {
       name: "nd:deop",
-      description: "オペレーター権限を剝奪します。",
+      description: "§aオペレーター権限を剝奪します。",
       permissionLevel: server.CommandPermissionLevel.Admin,
       mandatoryParameters: [
-        { name: "player", type: server.CustomCommandParamType.String },
+        {
+          name: "player",
+          type: server.CustomCommandParamType.PlayerSelector,
+        },
       ],
       optionalParameters: [],
     },
     (origin, ...arg) => {
       server.system.runTimeout(() => {
         if (getop(origin.sourceEntity)) {
+          if (!arg.length == 1) {
+            utils.senderror(player, "noselector");
+          }
           let type = getPlayerByName(arg[0]);
           type.setDynamicProperty("nova:operator", false);
           origin.sourceEntity.sendMessage(
             `[§a§lNovaDefender§r] §e${arg[0]} §aからオペレーター権限を剝奪しました。`
           );
         } else {
-          origin.sourceEntity.sendMessage(
-            `[§a§lNovaDefender§r] §e権限が存在しません`
-          );
+          utils.senderror(origin.sourceEntity, "nopermission");
         }
-      }, 5);
+      }, 1);
     }
   );
-});
 
-server.system.runInterval(() => {
-  if (blacklist.indexOf(getdp("nova:owner")) != -1) {
-    let player = getPlayerByName(getdp("nova:owner"));
-    if (getop(player)) {
-      server.world.setDynamicProperty("nova:owner");
-      player.setDynamicProperty("nova:operator", false);
-      player.sendMessage(
-        "[§aNovaDefender§r] §e " +
-          player.name +
-          "§a あなたはブラックリストに登録されているためNovaDefenderを利用できません。"
-      );
-    } else {
-      return;
+  ev.customCommandRegistry.registerCommand(
+    {
+      name: "nd:data",
+      description: "§aプレイヤーデータを表示します",
+      permissionLevel: server.CommandPermissionLevel.Admin,
+      mandatoryParameters: [],
+      optionalParameters: [
+        {
+          name: "player",
+          type: server.CustomCommandParamType.PlayerSelector,
+        },
+      ],
+    },
+    (origin, ...arg) => {
+      let player = origin.sourceEntity;
+      server.system.runTimeout(() => {
+        if (getop(origin.sourceEntity)) {
+          if (!arg.length == 1) {
+            utils.senderror(player, "noselector");
+          }
+          let playername = arg[0].name;
+          if (playername === undefined) playername = origin.sourceEntity.name;
+
+          if (getPlayerByName(playername) === undefined) {
+            utils.senderror(player, "noplayer");
+            return;
+          }
+          let players = getPlayerByName(playername);
+          let permission = "";
+          if (getop(players)) {
+            permission = "§r§aOP";
+          } else {
+            permission = "§r§emember";
+          }
+          player.sendMessage(
+            `--- §a${playername}'data ---\n§7Name: §r${playername}\n§7Permission: §r${permission}\n§7location: §r${Math.floor(
+              players.location.x
+            )} ${Math.floor(players.location.y)} ${Math.floor(
+              players.location.z
+            )}\n§7Dimension: §r${
+              players.dimension.id
+            }\n§7Health: §r${Math.floor(
+              players.getComponent("minecraft:health").currentValue
+            )} / ${
+              players.getComponent("minecraft:health").effectiveMax
+            }\n§7Gamemode: §r${players.getGameMode()}\n§7CPS: ${get_cps(
+              player
+            )}\n§7Platform: §r${players.clientSystemInfo.platformType} (${
+              players.inputInfo.lastInputModeUsed
+            })\nafk: §r${getsleep(players)}`
+          );
+        } else {
+          utils.senderror(origin.sourceEntity, "nopermission");
+        }
+      }, 1);
     }
-  } else {
-    return;
-  }
+  );
 });
 
 //禁止エンティティ取得
@@ -1307,9 +1407,7 @@ server.world.beforeEvents.chatSend.subscribe((ev) => {
         `§a--- NovaDefender AntiCheat ${v} discord ---\n - ${official_support_server}`
       );
     } else {
-      ev.sender.sendMessage(
-        `[§a§lNovaDefender§r] §ccommand error: 権限が存在しません。 §r(§7permission is undefined§r)`
-      );
+      utils.senderror(ev.sender, "nopermission");
     }
   }
 });
@@ -1326,7 +1424,7 @@ server.world.beforeEvents.chatSend.subscribe((ev) => {
 //             `[§a§lNovaDefender§r] §ccommand error: ${args[1]} というプレイヤーは見つかりませんでした。 §r(§7player is undefined§r)`
 //           );
 //         }
-//         command(`tp ${ev.sender.name} ${args[1]}`);
+//         command(`tp "${ev.sender.name}" "${args[1]}""`);
 //         player.sendMessage(
 //           `[§a§lNovaDefender§r] §acommand complete: ${args[1]} にテレポートしました。`
 //         );
@@ -1335,13 +1433,13 @@ server.world.beforeEvents.chatSend.subscribe((ev) => {
 //         let y = args[1];
 //         let z = args[2];
 //         if (!args[3] == "" || !args[3] == undefined) {
-//           command(`tp ${ev.sender.name} ${x} ${y} ${z}`);
+//           command(`tp "${ev.sender.name}"" ${x} ${y} ${z}`);
 //           player.sendMessage(
 //             `[§a§lNovaDefender§r] §acommand complete: ${ev.sender.dimension.id} の ${x} ${y} ${z} に テレポートしました。`
 //           );
 //         } else {
 //           command(
-//             `execute in ${args[3]} run tp ${ev.sender.name} ${x} ${y} ${z}`
+//             `execute in ${args[3]} run tp "${ev.sender.name}"" ${x} ${y} ${z}`
 //           );
 //           player.sendMessage(
 //             `[§a§lNovaDefender§r] §acommand complete: minecraft:${args2[3]} の ${x} ${y} ${z} に テレポートしました。`
@@ -1522,7 +1620,7 @@ function Noitemdel(player, item) {
       let bucketSlot = slot;
       container.setItem(bucketSlot, null);
       server.world.sendMessage(
-        `[§a§lNovaDefender§r] 禁止アイテムの所持を検知しました。\n§7 - ${player.name}\n - ${item}`
+        `[§a§lNovaDefender§r] §c${player.name} §fwas detected holding §c${itemStack.typeId}§f.\n§7- §f禁止アイテムの所持を検知しました。 (player: ${player.name} / item: ${itemStack.typeId})`
       );
     }
   }
@@ -1646,7 +1744,7 @@ function setmaxspeed(player) {
 
 //kanzan
 
-function setmaxnotfispeed(player) {
+function setmaxnotifispeed(player) {
   const form = new ui.ModalFormData();
   form.textField("§l最大通知スピードを入力", " ");
   form
@@ -1668,13 +1766,6 @@ function setmaxnotfispeed(player) {
       player.sendMessage("エラー: " + error.message);
     });
 }
-
-//undefined対策
-server.system.runInterval(() => {
-  if (getdp("nova:maxspeed") == undefined) {
-    setdp("nova:maxspeed", 40);
-  }
-});
 
 //killaura_processing_setting
 function killaura_processing_setting(player) {
@@ -1858,9 +1949,7 @@ server.world.beforeEvents.chatSend.subscribe((ev) => {
       !ev.sender.getDynamicProperty("nova:operator") ||
       ev.sender.getDynamicProperty("nova:operator") === undefined
     ) {
-      ev.sender.sendMessage(
-        `[§a§lNovaDefender§r] §ccommand error: 権限が存在しません。 §r(§7permission is undefined§r)`
-      );
+      utils.senderror(ev.sender, "nopermission");
       return;
     }
     let player = ev.sender;
@@ -1889,32 +1978,30 @@ server.world.beforeEvents.chatSend.subscribe((ev) => {
 
 //作成中 | banコマンド
 server.world.beforeEvents.chatSend.subscribe((ev) => {
-  if (ev.message.startsWith(";ban")) {
+  if (ev.message.startsWith(`${getprefix()}ban `)) {
     ev.cancel = true;
-    if (
-      !ev.sender.getDynamicProperty("nova:operator") ||
-      ev.sender.getDynamicProperty("nova:operator") === undefined
-    ) {
-      ev.sender.sendMessage(
-        `[§a§lNovaDefender§r] §ccommand error: 権限が存在しません。 §r(§7permission is undefined§r)`
-      );
-      return;
-    }
-    let player = ev.sender;
-    const args = ev.message.split(" ");
+    const args = ev.message
+      .match(/"[^"]*"|\S+/g)
+      .map((s) => s.replace(/^"|"$/g, ""));
     let playername = args[1];
-    if (playername === undefined) playername = ev.sender.name;
-    if (getPlayerByName(playername) === undefined) {
-      player.sendMessage(
-        `[§a§lNovaDefender§r] §ccommand error §e${playername}§r §cというプレイヤーは存在しませんでした §r(§7player is undefined§r)`
-      );
+    let player = ev.sender;
+    if (!getop(player)) {
+      utils.senderror(player, "nopermission");
       return;
+    } else if (playername == player.name) {
+      utils.senderror(player, "nobanself");
+      return;
+    } else {
+      if (getPlayerByName(playername) === undefined) {
+        utils.senderror(player, "noplayer");
+        return;
+      }
+      let targetplayer = getPlayerByName(playername);
+      banadd(targetplayer.name, args[2]);
+      player.sendMessage(
+        `[§a§lNovaDefender] §acommand completed: §e${playername} §aをbanしました。 §r(§7response completed.§r)`
+      );
     }
-    let targetplayer = getPlayerByName(playername);
-    banadd(targetplayer.name);
-    player.sendMessage(
-      `[§a§lNovaDefender] §2command completed: §e${playername}§r §2をbanしました。 §r(§7response completed.§r)`
-    );
   }
 });
 
@@ -1933,9 +2020,7 @@ server.world.beforeEvents.chatSend.subscribe((ev) => {
       !ev.sender.getDynamicProperty("nova:operator") &&
       ev.sender.getDynamicProperty("nova:operator") === undefined
     ) {
-      ev.sender.sendMessage(
-        `[§a§lNovaDefender§r] §ccommand error: 権限が存在しません。 §r(§7permission is undefined§r)`
-      );
+      utils.senderror(ev.sender, "nopermission");
       return;
     }
 
@@ -1978,9 +2063,7 @@ server.world.beforeEvents.chatSend.subscribe((ev) => {
       !ev.sender.getDynamicProperty("nova:operator") ||
       ev.sender.getDynamicProperty("nova:operator") === undefined
     ) {
-      ev.sender.sendMessage(
-        `[§a§lNovaDefender§r] §ccommand error: 権限が存在しません。 §r(§7permission is undefined§r)`
-      );
+      utils.senderror(ev.sender, "nopermission");
       return;
     }
     let player = ev.sender;
@@ -2014,9 +2097,7 @@ server.world.beforeEvents.chatSend.subscribe((ev) => {
       !ev.sender.getDynamicProperty("nova:operator") ||
       ev.sender.getDynamicProperty("nova:operator") === undefined
     ) {
-      ev.sender.sendMessage(
-        `[§a§lNovaDefender§r] §ccommand error: 権限が存在しません。 §r(§7permission is undefined§r)`
-      );
+      utils.senderror(ev.sender, "nopermission");
       return;
     }
     let player = ev.sender;
@@ -2062,9 +2143,7 @@ server.world.beforeEvents.chatSend.subscribe((ev) => {
   if (ev.message == ";viewer.set on") {
     ev.cancel = true;
     if (!getop(ev.sender)) {
-      ev.sender.sendMessage(
-        `[§a§lNovaDefender§r] §ccommand error: 権限が存在しません。 §r(§7permission is undefined§r)`
-      );
+      utils.senderror(ev.sender, "nopermission");
       return;
     } else {
       let player = ev.sender;
@@ -2080,9 +2159,7 @@ server.world.beforeEvents.chatSend.subscribe((ev) => {
   if (ev.message == ";viewer.set off") {
     ev.cancel = true;
     if (!getop(ev.sender)) {
-      ev.sender.sendMessage(
-        `[§a§lNovaDefender§r] §ccommand error: 権限が存在しません。 §r(§7permission is undefined§r)`
-      );
+      utils.senderror(ev.sender, "nopermission");
       return;
     } else {
       let player = ev.sender;
@@ -2095,15 +2172,13 @@ server.world.beforeEvents.chatSend.subscribe((ev) => {
 });
 
 server.world.beforeEvents.chatSend.subscribe((ev) => {
-  if (ev.message.startsWith(";kick")) {
+  if (ev.message.startsWith(`${getprefix}kick`)) {
     ev.cancel = true;
     if (
       !ev.sender.getDynamicProperty("nova:operator") ||
       ev.sender.getDynamicProperty("nova:operator") === undefined
     ) {
-      ev.sender.sendMessage(
-        `[§a§lNovaDefender§r] §ccommand error: 権限が存在しません。 §r(§7permission is undefined§r)`
-      );
+      utils.senderror(ev.sender, "nopermission");
       return;
     }
     let player = ev.sender;
@@ -2122,13 +2197,11 @@ server.world.beforeEvents.chatSend.subscribe((ev) => {
       return;
     }
     if (playername === ev.sender.name) {
-      player.sendMessage(
-        `[§a§lNovaDefender§r] §ccommand error: 自分をkickすることはできません §r(§7my is nokick§r)`
-      );
+      utils.senderror(player, "nokickself");
       return;
     }
     command(
-      `kick ${playername} §lkicked by NovaDefender AntiCheat\n§r§cExecution Player: ${ev.sender.name}\n§r§cType: Kickcommand`
+      `kick "${playername}" §lkicked by NovaDefender AntiCheat\n§r§cExecution Player: ${ev.sender.name}\n§r§cReason: KickCommand`
     );
     player.sendMessage(
       `[§a§lNovaDefender§r] §2command complete: ${playername} をkickしました。 §r(§7response completed.§r)`
@@ -2300,7 +2373,9 @@ function Noitemsetting_forms(player, item) {
 
 function banadd_form(player) {
   const form = new ui.ModalFormData();
-  form.textField("§lゲーマータグを入力してください", "");
+  form.textField("player", "player");
+  form.textField("reason", "reason");
+  form.textField("time", "time: 1d / 1m / 1s / 1h / 1month / 1y");
   form.show(player).then((response) => {
     if (response.canceled) {
       return;
@@ -2308,7 +2383,11 @@ function banadd_form(player) {
     if (response.formValues[0] === "") {
       return;
     }
-    banadd(response.formValues[0]);
+    banadd(
+      response.formValues[0],
+      response.formValues[1],
+      response.formValues[2]
+    );
 
     player.sendMessage(
       "[§a§lNovaDefender§r] §l" +
@@ -2488,9 +2567,7 @@ server.world.afterEvents.itemUse.subscribe((ev) => {
   let player = ev.source;
   if (ev.itemStack.nameTag == "[§a§lNovaDefender§r] パネルを開く") {
     if (player.getDynamicProperty("nova:operator") == undefined) {
-      ev.sender.sendMessage(
-        `[§a§lNovaDefender§r] §ccommand error: 権限が存在しません。 §r(§7permission is undefined§r)`
-      );
+      utils.senderror(ev.sender, "nopermission");
     }
     if (player.getDynamicProperty("nova:operator") == true) {
       nova_hub(player);
@@ -2505,12 +2582,6 @@ server.world.afterEvents.itemUse.subscribe((ev) => {
 server.system.runInterval(() => {
   if (getdp("nova:login") == undefined)
     setdp("nova:login", JSON.stringify([""]));
-});
-
-server.system.runInterval(() => {
-  if (getdp("nova:killaura_status") == undefined) {
-    setdp("nova:killaura_status", true);
-  }
 });
 
 server.world.afterEvents.playerSpawn.subscribe((ev) => {
@@ -2559,17 +2630,17 @@ server.world.beforeEvents.playerBreakBlock.subscribe((ev) => {
     let block_location = ev.block.location;
     let distances = distance(breaker_location, block_location);
 
-    let detection_distance = getdp("nova:block_reach_detection_distance");
-
+    let detection_distance = getdp("nova:blockreach_detection");
+    //blockreach
     if (distances > detection_distance) {
-      // let pushment = getdp("nova:block_reach_detection_pushment");
-      let pushment = 1;
+      let pushment = getdp("nova:block_reach_detection_pushment");
+      // let pushment = 1;
       if (pushment == 0) {
         return;
       } else if (pushment == 1) {
         ev.cancel = true;
         server.world.sendMessage(
-          `[§a§lNovaDefender§r] §v不正なリーチを検知しました。\n§7player: ${player.name}\nlocation: ${block_location.x} ${block_location.y} ${block_location.z}\n`
+          `[§a§lNovaDefender§r] §c${player.name} §fwas detected using §cBlockReach§f.\n§7- §fBlockReachの使用を検知しました。 (location: ${block_location.x} ${block_location.y} ${block_location.z})`
         );
         player.setDynamicProperty("nova:nobreak", true);
       }
@@ -2795,17 +2866,6 @@ function generate_player_list() {
   return player_list;
 }
 
-server.system.runInterval(() => {
-  if (getdp("nova:cpsmax_processing") === undefined)
-    setdp("nova:cpsmax_processing", 1);
-});
-
-server.system.runInterval(() => {
-  if (getdp("nova:maxattack_distance") == undefined) {
-    setdp("nova:maxattack_distance", 6);
-  }
-});
-
 const attackCooldown = new Map();
 const attackCooldown2 = new Map();
 
@@ -2848,12 +2908,7 @@ server.world.afterEvents.entityHitEntity.subscribe((ev) => {
         return;
       } else {
         server.world.sendMessage(
-          `[§a§lNovaDefender§r] §v設定以上のCPSを検知しました。\n §p${
-            player.name
-          }\n §c${cpscount}cps        \n - §7Type: ${ev.hitEntity.typeId} ${
-            ev.hitEntity.nameTag || ""
-          }
-`
+          `[§a§lNovaDefender§r] §c${player.name} §fwas detected using §cKillaura (CPS)§f.\n§7- §fKillaura (CPS)の使用を検知しました。 (CPS: ${cpscount})`
         );
         attackCooldown.set(player.id, true);
         server.system.runTimeout(() => {
@@ -2862,16 +2917,10 @@ server.world.afterEvents.entityHitEntity.subscribe((ev) => {
       }
     } else if (getdp("nova:cpsmax_processing") == 2) {
       server.world.sendMessage(
-        `[§a§lNovaDefender§r] §v設定以上のCPSを検知しました。\n §p${
-          player.name
-        }\n §c${cpscount}cps        \n - §7Type: ${ev.hitEntity.typeId} ${
-          ev.hitEntity.nameTag || ""
-        }
-`
+        `[§a§lNovaDefender§r] §c${player.name} §fwas detected using §cKillaura (CPS)§f.\n§7- §fKillaura (CPS)の使用を検知しました。 (CPS: ${cpscount})`
       );
-
       command(
-        `kick ${player.name} §lkicked By NovaDefender\n\n設定以上のCPSを検知しました。 ｜ ${cpscount}cps`
+        `kick ${player.name} §lkicked By NovaDefender\n\nKillaura (CPS)の使用を検知しました。 ｜ ${cpscount}cps`
       );
       server.world.getPlayers().forEach((players) => {
         if (
@@ -2879,7 +2928,7 @@ server.world.afterEvents.entityHitEntity.subscribe((ev) => {
           players.getDynamicProperty("nova:operator") !== undefined
         ) {
           players.sendMessage(
-            `[§a§lNovaDefender§r] ${player.name} を CPS制限でkickしました。 (${cpscount}cps)`
+            `[§a§lNovaDefender§r] ${player.name} を Killaura (CPS)の使用でkickしました。 (${cpscount}cps)`
           );
         } else {
           return;
@@ -2888,7 +2937,7 @@ server.world.afterEvents.entityHitEntity.subscribe((ev) => {
     } else if (getdp("nova:cpsmax_processing") == 3) {
       banadd(player.name);
       server.world.sendMessage(
-        `[§a§lNovaDefender§r] §v設定以上のCPSを検知しました。\n §p${player.name}\n §c${cpscount}cps`
+        `[§a§lNovaDefender§r] §c${player.name} §fwas detected using §cKillaura (CPS)§f.\n§7- §fKillaura (CPS)の使用を検知しました。 (CPS: ${cpscount})`
       );
     }
   }
@@ -2898,9 +2947,11 @@ server.world.afterEvents.entityHitEntity.subscribe((ev) => {
       return;
     } else {
       server.world.sendMessage(
-        `[§a§lNovaDefender§r] §v設定以上のリーチを検知しました。\n §p${
+        `[§a§lNovaDefender§r] §c${
           player.name
-        }\n §c${Math.floor(distance)}block`
+        } §fwas detected using §cKillaura (Reach)§f.\n§7- §fKillaura (Reach)の使用を検知しました。 (Reach: ${Math.floor(
+          distance
+        )} block)`
       );
       attackCooldown2.set(player.id, true);
       server.system.runTimeout(() => {
@@ -2993,7 +3044,7 @@ server.world.beforeEvents.playerBreakBlock.subscribe((ev) => {
     !getop(ev.player)
   ) {
     server.world.sendMessage(
-      `[§a§lNovaDefender§r] §l不正なブロック破壊を検知しました ｜ Name: §e${ev.source.name}`
+      `[§a§lNovaDefender§r] §c${ev.player.name} §fwas detected breaking blocks illegally.\n§7- §f不正なブロック破壊を検知しました。 (block: ${ev.block.typeId})`
     );
   }
 });
@@ -3336,6 +3387,29 @@ function place_searcher_form(player) {
     });
 }
 
+function blockreach_reachsetting(player) {
+  const form = new ui.ModalFormData();
+  form.textField("§lリーチを入力してください", "");
+  form
+    .show(player)
+    .then((response) => {
+      if (response.canceled) {
+        blockreach_setting(player);
+        return;
+      }
+      if (response.formValues[0] === "" || response.formValues[0] === " ") {
+        blockreach_setting(player);
+      } else {
+        setdp("nova:blockreach_detection", response.formValues[0]);
+        player.sendMessage("[§a§lNovaDefender§r] 設定が完了しました。");
+        blockreach_setting(player);
+      }
+    })
+    .catch((error) => {
+      player.sendMessage("エラー: " + error.message);
+    });
+}
+
 function cps_setting(player) {
   const form = new ui.ModalFormData();
   form.textField("§lCPSを入力してください", "");
@@ -3350,7 +3424,7 @@ function cps_setting(player) {
         killaura_setting(player);
       } else {
         setdp("nova:cpsmax", response.formValues[0]);
-        player.sendMessage("[§lNovaDefender§r] 設定が完了しました");
+        player.sendMessage("[§a§lNovaDefender§r] 設定が完了しました。");
         killaura_setting(player);
       }
     })
@@ -3382,20 +3456,15 @@ function all_pl(player) {
     }
   });
   form.button("戻る", "textures/ui/realms_red_x");
-  form
-    .show(player)
-    .then((response) => {
-      if (server.world.getPlayers()[response.selection] === undefined) {
-        nova_hub(player);
-        return;
-      } else {
-        let players = server.world.getPlayers()[response.selection];
-        player_setting(player, players);
-      }
-    })
-    .catch((error) =>
-      player.sendMessage("An error occurred: " + error.message)
-    );
+  form.show(player).then((response) => {
+    if (server.world.getPlayers()[response.selection] === undefined) {
+      nova_hub(player);
+      return;
+    } else {
+      let players = server.world.getPlayers()[response.selection];
+      player_setting(player, players);
+    }
+  });
 }
 
 function banlist(player) {
@@ -3407,15 +3476,9 @@ function banlist(player) {
   form.button("§a追加", "textures/ui/color_plus");
   form.button("§a戻る", "textures/ui/realms_red_x");
   form.show(player).then((response) => {
-    let length = 0;
-    if (getbanlist().length == 0) {
-      length = -1;
-    } else {
-      length = getbanlist().length;
-    }
     if (
-      server.world.getPlayers()[response.selection] === undefined ||
-      response.selection == getbanlist().length + 2
+      response.canceled === true ||
+      response.selection == getbanlist().length + 1
     ) {
       nova_hub(player);
       return;
@@ -3424,17 +3487,12 @@ function banlist(player) {
       return;
     } else {
       banremove_ui(player, getbanlist()[response.selection]);
-      server.world.sendMessage(getbanlist()[response.selection]);
       return;
     }
   });
-  // .catch((error) =>
-  //   player.sendMessage("An error occurred: " + error.message)
-  // );
 }
 
 async function banremove_ui(player, type) {
-  // メソッドチェーンでまとめて定義
   const form = new ui.ActionFormData()
     .title("§a§lNovaDefender controlpanel")
     .button("§aBAN解除")
@@ -3501,62 +3559,12 @@ function dispgetjptime() {
   return `${year}/${month}/${day} ${hours}:${minutes}`;
 }
 
-// server.system.runInterval(() => {
-//   if (getdp("nova:itemkill_switch") == true) {
-//     server.world.sendMessage(`[§a§lNovaDefeder§r] アイテムキルを行います。`);
-//     let time = 5;
-//     server.world.sendMessage(`[§7counter§r] ${time}sec`);
-//     server.system.runTimeout(() => {
-//       time--;
-//       server.world.sendMessage(`[§7counter§r] ${time}sec`);
-//       server.system.runTimeout(() => {
-//         time--;
-//         server.world.sendMessage(`[§7counter§r] ${time}sec`);
-//         server.system.runTimeout(() => {
-//           time--;
-//           server.world.sendMessage(`[§7counter§r] ${time}sec`);
-//           server.system.runTimeout(() => {
-//             time--;
-//             server.world.sendMessage(`[§7counter§r] ${time}sec`);
-//             server.system.runTimeout(() => {
-//               command(`kill @e[type=item]`);
-//               server.world.sendMessage(
-//                 `[§a§lNovaDefender§r] §aアイテムキルを行いました。`
-//               );
-//             }, 20);
-//           }, 20);
-//         }, 20);
-//       }, 20);
-//     }, 20);
-//   }
-// }, getdp("nova:itemkill_tick"));
-
-server.system.runInterval(() => {
-  if (getdp("nova:itemkill_tick") == undefined) {
-    setdp("nova:itemkill_tick", Number(2400));
-  }
-});
-
-// server.world.beforeEvents.chatSend.subscribe((ev) => {
-//   if (ev.message == "test") {
-//     setdp("nova:itemkill_tick", 2400);
-//   }
-// });
-
-server.system.runInterval(() => {
-  if (getdp("nova:itemkill_switch") == undefined) {
-    setdp("nova:itemkill_switch", true);
-  }
-});
-
 server.world.beforeEvents.chatSend.subscribe((ev) => {
   if (ev.message === `${getdp("nova:command_firsts")}item`) {
     ev.cancel = true;
     let player = ev.sender;
     if (player.getDynamicProperty("nova:operator") == undefined) {
-      ev.sender.sendMessage(
-        `[§a§lNovaDefender§r] §ccommand error: 権限が存在しません。 §r(§7permission is undefined§r)`
-      );
+      utils.senderror(ev.sender, "nopermission");
       return;
     }
     if (player.getDynamicProperty("nova:operator") == true) {
@@ -3565,9 +3573,7 @@ server.world.beforeEvents.chatSend.subscribe((ev) => {
       );
       ev.sender.setDynamicProperty("nova:givepanel", true);
     } else if (player.getDynamicProperty("nova:operator") == false) {
-      ev.sender.sendMessage(
-        `[§a§lNovaDefender§r] §ccommand error: 権限が存在しません。 §r(§7permission is undefined§r)`
-      );
+      utils.senderror(ev.sender, "nopermission");
       return;
     }
   }
@@ -3689,16 +3695,6 @@ function getpl_soubi(player) {
   return soubi;
 }
 
-server.system.runInterval(() => {
-  if (getdp("nova:flyhack_activestate") == undefined) {
-    setdp("nova:flyhack_activestate", false);
-  }
-
-  if (getdp("nova:speedprocessing") == undefined) {
-    setdp("nova:speedprocessing", 0);
-  }
-});
-
 function fly_hack_processing(player) {
   const form = new ui.ActionFormData();
   form.title("§a§lNovaDefender controlpanel");
@@ -3740,12 +3736,6 @@ function fly_hack_processing(player) {
     );
 }
 
-server.system.runInterval(() => {
-  if (getdp("nova:fly_tpback") == undefined) {
-    setdp("nova:fly_tpback", true);
-  }
-});
-
 function pltp(player, x, y, z, dim) {
   player.teleport({ dimension: dim, x: x, y: y, z: z });
 }
@@ -3755,7 +3745,7 @@ function fly_hack_setting(player) {
   if (getdp("nova:speedprocessing") == 0) {
     processing = "none";
   } else if (getdp("nova:speedprocessing") == 1) {
-    processing = "notfi";
+    processing = "notifi";
   } else if (getdp("nova:speedprocessing") == 2) {
     processing = "kick";
   } else if (getdp("nova:speedprocessing") == 3) {
@@ -3769,7 +3759,7 @@ function fly_hack_setting(player) {
   form.button(`status\n§7${String(getdp("nova:flyhack_activestate"))}`); //0
   form.button(`maxspeed\n§7${String(getdp("nova:maxspeed"))}`); //1
   form.button(
-    `notfication speed\n§7${String(getdp("nova:fly_data_view_speed"))}`
+    `notification speed\n§7${String(getdp("nova:fly_data_view_speed"))}`
   ); //2
   form.button(`processing\n§7${processing}`); //3
   form.button(`tpback\n§7${getdp("nova:fly_tpback")}`); //4
@@ -3796,7 +3786,7 @@ function fly_hack_setting(player) {
           setmaxspeed(player);
           break;
         case 2:
-          setmaxnotfispeed(player);
+          setmaxnotifispeed(player);
           break;
         case 3:
           fly_hack_processing(player);
@@ -3830,18 +3820,55 @@ function fly_hack_setting(player) {
     );
 }
 
+function blockreach_setting(player) {
+  const form = new ui.ActionFormData();
+  form.title("§a§lNovaDefender controlpanel");
+  form.button(`switch\n§a${String(getdp("nova:blockreach_switch"))}`);
+  form.button(`reach\n§a${String(getdp("nova:blockreach_detection"))}`);
+  form.button("pushment\n§anotifiのみ kick/ban/none作成中");
+
+  form.button("戻る / return", "textures/ui/realms_red_x");
+
+  form.show(player).then((response) => {
+    if (response.canceled) {
+      setting(player);
+      return;
+    }
+    switch (response.selection) {
+      case 0:
+        setdp("nova:blockreach_switch", !getdp("nova:blockreach_switch"));
+        blockreach_setting(player);
+        break;
+      case 1:
+        blockreach_reachsetting(player);
+        break;
+      case 2:
+        blockreach_setting(player);
+        break;
+      case 3:
+        break;
+      case 4:
+        setting(player);
+        break;
+      default:
+        setting(player);
+        break;
+    }
+  });
+}
+
 function setting(player) {
   const form = new ui.ActionFormData();
   form.title("§a§lNovaDefender controlpanel");
   form.body("§a§l--- NovaDefender AntiCheat ---\n  §r§vSetting User Interface");
   form.button("Noitem\n§a禁止アイテムの設定");
   form.button("attack\n§a攻撃関連の設定");
-  form.button("movement\n§a移動関係の設定");
-  // form.button("creative\n§aクリエイティブ検知設定");
+  form.button("movement\n§a移動関連の設定");
   form.button("Noentity\n§a禁止エンティティ設定");
   form.button("OverEnchantments\n§aオーバエンチャント検知設定");
   form.button("Command\n§aコマンド系の設定");
   form.button("Maxentity\n§a最大エンティティの設定");
+  form.button("BlockReach\n§aリーチ関連の設定");
 
   form
     .show(player)
@@ -3860,11 +3887,6 @@ function setting(player) {
         case 2:
           fly_hack_setting(player);
           break;
-
-        // case 3:
-        //   creative_setting(player);
-        //   break;
-
         case 3:
           Noentitysetting(player);
           break;
@@ -3876,6 +3898,9 @@ function setting(player) {
           break;
         case 6:
           max_entity_setting_main(player);
+          break;
+        case 7:
+          blockreach_setting(player);
           break;
         default:
           nova_hub(player);
@@ -4133,12 +4158,10 @@ function player_setting(player, players) {
   const form = new ui.ActionFormData();
   form.title("§a§lNovaDefender controlpanel");
   form.body(
-    `§pName: §r${playerdata.name} \n§pPermission: §r${testplop(
-      playerdata
-    )} \n§pNovaDefender OP: §r${getop(players)}\n§pHealth: §r${
-      playerdata.getComponent("minecraft:health").currentValue
-    } / ${
-      players.getComponent("minecraft:health").effectiveMax
+    `§pName: §r${playerdata.name}  \n§pNovaDefender OP: §r${getop(
+      players
+    )}\n§pHealth: §r${players.getComponent("health").currentValue} / ${
+      players.getComponent("health").effectiveMax
     }\n§plocation: §r${Math.floor(playerdata.location.x)} ${Math.floor(
       playerdata.location.y
     )} ${Math.floor(
@@ -4187,29 +4210,36 @@ function player_setting(player, players) {
           break;
         case 3:
           if (response.selection === 3) {
-            let command = server.world.getPlayers()[0];
-            command(
-              `kick ${players.name} §lkicked By NovaDefender \n Type: kickcommand\nExecution Player: ${player.name}`
-            );
+            if (players.name == player.name) {
+              utils.senderror(player, "nokickself");
+            } else {
+              command(
+                `kick ${players.name} §lkicked By NovaDefender \n Type: kickcommand\nExecution Player: ${player.name}`
+              );
+              player.sendMessage(
+                `[§a§lNovaDefender§r] ${players.name}をkickしました`
+              );
+            }
+          }
+          break;
+        case 4:
+          if (players.name == player.name) {
+            utils.senderror(player, "nobanself");
+          } else {
+            banadd(players.name);
             player.sendMessage(
-              `[§a§lNovaDefender§r] ${players.name}をkickしました`
+              `[§a§lNovaDefender§r] §p${players.name} §aをbanしました。`
             );
           }
-
-        case 4:
-          banadd(players.name);
-          player.sendMessage(
-            `[§a§lNovaDefender§r] §p${players.name} §aをbanしました。`
-          );
           break;
         case 5:
-          command(`tp ${player.name} ${players.name}`);
+          command(`tp "${player.name}" "${players.name}"`);
           player.sendMessage(
             `[§a§lNovaDefender§r] §e${players.name} §aにテレポートしました。`
           );
           break;
         case 6:
-          command(`tp ${players.name} ${player.name}`);
+          command(`tp "${players.name}" "${player.name}"`);
           player.sendMessage(
             `[§a§lNovaDefender§r] §e${players.name} §aを §e ${
               player.name
@@ -4232,12 +4262,6 @@ function player_setting(player, players) {
       player.sendMessage("An error occurred: " + error.message)
     );
 }
-
-server.system.runInterval(() => {
-  if (getdp("nova:maxentityswitch") == undefined) {
-    setdp("nova:maxentityswitch", true);
-  }
-});
 
 server.system.runInterval(() => {
   if (getdp("nova:maxentityswitch") == true) {
@@ -4391,7 +4415,9 @@ function getPlayerSpeed(player) {
 async function player_permissoion_setting(player, typeplayer) {
   const form = new ui.ModalFormData();
   form.title("§a§lNovaDefender controlpanel");
-  form.toggle("§loperator");
+  form.toggle("§loperator", {
+    defaultValue: typeplayer.getDynamicProperty(`nova:operator`),
+  });
   form.show(player).then((response) => {
     if (response.canceled) {
       player_setting(player);
@@ -4401,7 +4427,7 @@ async function player_permissoion_setting(player, typeplayer) {
       `nova:operator`,
       Boolean(response.formValues[0])
     );
-    player_setting(player);
+    player_setting(player, typeplayer);
   });
 }
 
@@ -4426,18 +4452,14 @@ server.world.beforeEvents.chatSend.subscribe((ev) => {
   if (ev.message == `${getdp("nova:command_firsts")}setting`) {
     ev.cancel = true;
     if (ev.sender.getDynamicProperty("nova:operator") == undefined) {
-      ev.sender.sendMessage(
-        `[§a§lNovaDefender§r] §ccommand error: 権限が存在しません。 §r(§7permission is undefined§r)`
-      );
+      utils.senderror(ev.sender, "nopermission");
     }
     if (ev.sender.getDynamicProperty("nova:operator") == true) {
       ev.sender.setDynamicProperty("setting_open", true);
 
       ev.sender.sendMessage("§7[NovaDefender] チャットを閉じてください");
     } else if (ev.sender.getDynamicProperty("nova:operator") == false) {
-      ev.sender.sendMessage(
-        `[§a§lNovaDefender§r] §ccommand error: 権限が存在しません。 §r(§7permission is undefined§r)`
-      );
+      utils.senderror(ev.sender, "nopermission");
     }
   }
 });
@@ -4484,17 +4506,6 @@ async function player_ability_setting(player, typeplayer) {
     });
 }
 
-//testop
-function testplop(player) {
-  if (player.isOp()) {
-    return "operator";
-  } else if (!player.isOp()) {
-    return "member";
-  } else {
-    return "etr...";
-  }
-}
-
 function getgamemode(player) {
   let gamemode = player.getGameMode();
   return gamemode;
@@ -4526,8 +4537,9 @@ server.system.runInterval(() => {
       }
 
       server.world.sendMessage(
-        `[§a§lNovaDefender§r] ${player.name} >> 不正なクリエイティブを検知しました。 §r(§7Gamemode detection)`
+        `[§a§lNovaDefender§r] §c${player.name} §fwas detected using §cillegal creative mode§f.\n§7- §fillegal creative modeの使用を検知しました。`
       );
+
       let command = server.world.getPlayers()[0];
       command(`gamemode s ${player.name}`);
     }
@@ -4553,29 +4565,38 @@ server.world.beforeEvents.chatSend.subscribe((ev) => {
   }
 });
 
-server.system.runInterval(() => {
-  if (getdp("nova:banlist") == undefined) {
-    setdp("nova:banlist", JSON.stringify([]));
-  }
-});
-
-function banadd(player) {
+function banadd(player, reason, time) {
+  let banreasonlist = JSON.parse(getdp("nova:banreasonlist"));
   let banlist = JSON.parse(getdp("nova:banlist"));
+
   if (player.name == undefined) {
     banlist.push(player);
+    banreasonlist[`${player}`] = {
+      reason: reason,
+      time: time,
+    };
   } else {
     banlist.push(player.name);
+    banreasonlist[`${player.name}`] = {
+      reason: reason,
+      time: time,
+    };
   }
   setdp("nova:banlist", JSON.stringify(banlist));
 }
 
 server.system.runInterval(() => {
   let banlist = JSON.parse(getdp("nova:banlist"));
+  let banreasonlist = JSON.parse(getdp("nova:banreasonlist"));
   banlist.forEach((data) => {
     server.world.getPlayers().forEach((player) => {
       if (data == player.name && data != getdp("nova:owner")) {
         command(
-          `kick ${player.name} "§l§abanned by NovaDefender AntiCheat\n §pあなたはbanされています。"`
+          `kick ${
+            player.name
+          } "§l§aBanned by NovaDefender AntiCheat\n Reason: ${
+            banreasonlist[`${player.name}`]
+          }"`
         );
       } else {
         return;

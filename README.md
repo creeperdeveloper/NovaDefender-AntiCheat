@@ -133,16 +133,4 @@ _Note:_ Player names with spaces do not require quotation marks.
 
 ## Changelog / 変更履歴
 
-v1.2.3 (including updates since v1.0.0)
-
-- Some addon commands now support slash commands.
-- Player info screen allows game mode changes.
-- `command` command added to execute commands from NovaDefender.
-- Inventory rewrite features added: clear all and clear ender chest all.
-- Published on Crafters Colony.
-
----
-
-If you find any typos, bugs, or have feature requests, please leave a comment!
-
-_Note:_ Ban functionality is under development. Please wait for future updates.
+https://github.com/creeperdeveloper/NovaDefender-AntiCheat/activity
