@@ -860,8 +860,8 @@ function flyhack_detection(player) {
     velocity.x * velocity.x + velocity.z * velocity.z
   );
   const speedPerSecond = horizontalSpeed * 20;
-  let speed = sedPerSecond.toFixed(2);
-  if (speed > Nber(getdp("nova:fly_data_view_speed"))) {
+  let speed = speedPerSecond.toFixed(2);
+  if (speed > Number(getdp("nova:fly_data_view_speed"))) {
     server.worlgetPlayers().forEach((players) => {
       if (playe.getDynamicProperty("nova:data_view") == true) {
         return;
