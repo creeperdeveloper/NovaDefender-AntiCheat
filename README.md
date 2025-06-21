@@ -72,7 +72,7 @@ copies of the Software, subject to the following conditions:
 
 - Author: creeper_dev
 - Reference: NovaDefender AntiCheat
-- URL: https://minecraft-mcworld.com/147025/
+- URL: https://github.com/creeperdeveloper/NovaDefender-AntiCheat
 
 3. The Software is provided "as is", without warranty of any kind, express or implied,  
    including but not limited to the warranties of merchantability, fitness for a  
