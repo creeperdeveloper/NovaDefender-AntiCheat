@@ -863,7 +863,7 @@ function flyhack_detection(player) {
   let speed = speedPerSecond.toFixed(2);
   if (speed > Number(getdp("nova:fly_data_view_speed"))) {
     server.worlgetPlayers().forEach((players) => {
-      if (playe.getDynamicProperty("nova:data_view") == true) {
+      if (player.getDynamicProperty("nova:data_view") == true) {
         return;
       }
     });
@@ -2648,6 +2648,124 @@ server.world.beforeEvents.playerBreakBlock.subscribe((ev) => {
   }
 });
 
+//---
+
+const lastOffhands = new Map();
+
+server.system.runInterval(() => {
+  for (const p of server.world.getPlayers()) {
+    if (!getdp("nova:autototem_status")) continue;
+    if (p.getDynamicProperty("nova:operator")) continue;
+
+    const vel = p.getVelocity();
+    const speed = Math.sqrt(vel.x ** 2 + vel.y ** 2 + vel.z ** 2);
+    if (speed <= 0.05) continue;
+
+    const equip = p.getComponent("minecraft:equippable");
+    if (!equip) continue;
+
+    const current = equip.getEquipment(server.EquipmentSlot.Offhand);
+    const currentId = current?.typeId ?? "none";
+    const lastId = lastOffhands.get(p.id) ?? "none";
+
+    if (lastId !== currentId && currentId === "minecraft:totem_of_undying") {
+      const processing = getdp("nova:autototem_processing") ?? 1;
+
+      server.world.sendMessage(
+        `[§a§lNovaDefender§r] §c${p.name} §fwas detected using §cAutoTotem§f.\n§7- §f移動中のトーテム切り替えを検知しました。`
+      );
+
+      if (processing === 2) {
+        command(`kick "${p.name}" kicked by NovaDefender AutoTotem detection.`);
+      } else if (processing === 3) {
+        banadd(p.name, "AutoTotem cheat detected", "infinity");
+      }
+    }
+
+    lastOffhands.set(p.id, currentId);
+  }
+}, 5);
+
+function autototem_setting(player) {
+  let processing = 0;
+  if (getdp("nova:autototem_processing") == 0) {
+    processing = "none";
+  } else if (getdp("nova:autototem_processing") == 1) {
+    processing = "notification";
+  } else if (getdp("nova:autototem_processing") == 2) {
+    processing = "kick";
+  } else if (getdp("nova:autototem_processing") == 3) {
+    processing = "ban";
+  }
+
+  const form = new ui.ActionFormData();
+  form.title("§a§lNovaDefender controlpanel");
+  form.body(
+    "§a§l--- NovaDefender AntiCheat ---\n\n§r AutoTotem Setting (Setting User Interface)\n\n"
+  );
+  form.button(`status\n§7${getdp("nova:autototem_status")}`);
+  form.button(`processing\n§7${processing}`);
+  form.button("§l戻る / return", "textures/ui/realms_red_x");
+
+  form
+    .show(player)
+    .then((response) => {
+      switch (response.selection) {
+        case 0:
+          setdp("nova:autototem_status", !getdp("nova:autototem_status"));
+          autototem_setting(player);
+          break;
+        case 1:
+          autototem_processing_setting(player);
+          break;
+        case 2:
+          setting(player);
+          break;
+        default:
+          setting(player);
+          break;
+      }
+    })
+    .catch((error) =>
+      player.sendMessage("An error occurred: " + error.message)
+    );
+}
+
+function autototem_processing_setting(player) {
+  const form = new ui.ActionFormData();
+  form.title("§a§lNovaDefender AutoTotem Processing");
+  form.body("Choose processing action for AutoTotem detection:");
+  form.button("None");
+  form.button("Notification");
+  form.button("Kick");
+  form.button("Ban");
+
+  form
+    .show(player)
+    .then((response) => {
+      switch (response.selection) {
+        case 0:
+          setdp("nova:autototem_processing", 0);
+          break;
+        case 1:
+          setdp("nova:autototem_processing", 1);
+          break;
+        case 2:
+          setdp("nova:autototem_processing", 2);
+          break;
+        case 3:
+          setdp("nova:autototem_processing", 3);
+          break;
+      }
+      autototem_setting(player);
+    })
+    .catch((error) =>
+      player.sendMessage("An error occurred: " + error.message)
+    );
+}
+
+//---
+
 server.world.beforeEvents.playerPlaceBlock.subscribe((ev) => {
   if (!getop(ev.player)) {
     if (ev.player.getDynamicProperty("nova:nobreak")) {
@@ -2796,6 +2914,230 @@ function login(player) {
     );
 }
 
+//---
+
+const fallStartY = new Map();
+const damagedPlayers = new Set();
+
+server.world.afterEvents.entityHurt.subscribe((e) => {
+  const p = e.hurtEntity;
+  if (!(p instanceof server.Player)) return;
+  if (e.damageSource.cause === "fall" && e.damage > 0) {
+    damagedPlayers.add(p.id);
+    server.system.runTimeout(() => damagedPlayers.delete(p.id), 40);
+  }
+});
+
+server.system.runInterval(() => {
+  for (const p of server.world.getPlayers()) {
+    if (!getdp("nova:nofall_status")) continue;
+    if (p.getDynamicProperty("nova:operator")) continue;
+    if (p.gameMode === server.GameMode.creative) continue;
+
+    const vy = p.getVelocity().y;
+    if (vy > -0.5) continue;
+
+    const id = p.id;
+    const y = p.location.y;
+
+    if (vy < -0.3) {
+      if (!fallStartY.has(id)) fallStartY.set(id, y);
+    }
+
+    if (vy >= -0.01 && fallStartY.has(id)) {
+      const startY = fallStartY.get(id);
+      const fallDistance = startY - y;
+      const threshold = getdp("nova:nofall_fall_distance_threshold") || 5;
+
+      if (fallDistance >= threshold) {
+        if (
+          getdp("nova:nofall_kenti_block") ||
+          p.dimension.getBlock(p.location).typeId === "minecraft:slime_block" ||
+          p.isSneaking
+        ) {
+          fallStartY.delete(id);
+          continue;
+        }
+        const tookDamage = damagedPlayers.has(id);
+        if (!tookDamage) {
+          const processing = getdp("nova:nofall_processing") || 1;
+
+          server.world.sendMessage(
+            `[§a§lNovaDefender§r] §c${
+              p.name
+            } §fwas detected using §cNoFall§f.\n§7- §fNoFallの使用を検知しました。 (falling distance: ${Math.floor(
+              fallDistance
+            )} block)`
+          );
+
+          if (processing === 2) {
+            command(
+              `kick "${p.name}" kicked by NovaDefender NoFall detection.`
+            );
+          } else if (processing === 3) {
+            banadd(p.name, "NoFall cheat detected", "infinity");
+          }
+        }
+      }
+      fallStartY.delete(id);
+    }
+  }
+}, 5);
+
+function getArmorDefense(player) {
+  const equip = player.getComponent("minecraft:equippable");
+  if (!equip) return 0;
+  const slots = [
+    server.EquipmentSlot.Head,
+    server.EquipmentSlot.Chest,
+    server.EquipmentSlot.Legs,
+    server.EquipmentSlot.Feet,
+  ];
+  let defense = 0;
+  for (const slot of slots) {
+    const item = equip.getEquipment(slot);
+    if (!item) continue;
+    const id = item.typeId;
+    if (id.includes("leather")) defense += 1;
+    else if (id.includes("chainmail")) defense += 2;
+    else if (id.includes("gold")) defense += 2;
+    else if (id.includes("iron")) defense += 3;
+    else if (id.includes("diamond")) defense += 4;
+    else if (id.includes("netherite")) defense += 5;
+  }
+  return defense;
+}
+
+function hasFeatherFallingEnch(player) {
+  const equip = player.getComponent("minecraft:equippable");
+  if (!equip) return false;
+  const slots = [
+    server.EquipmentSlot.Head,
+    server.EquipmentSlot.Chest,
+    server.EquipmentSlot.Legs,
+    server.EquipmentSlot.Feet,
+  ];
+  for (const slot of slots) {
+    const item = equip.getEquipment(slot);
+    if (!item) continue;
+    const lore = item.getLore();
+    if (lore && lore.some((line) => line.includes("落下耐性"))) return true;
+  }
+  return false;
+}
+
+function nofall_setting(player) {
+  let processing = 0;
+  if (getdp("nova:nofall_processing") == 0) {
+    processing = "none";
+  } else if (getdp("nova:nofall_processing") == 1) {
+    processing = "notification";
+  } else if (getdp("nova:nofall_processing") == 2) {
+    processing = "kick";
+  } else if (getdp("nova:nofall_processing") == 3) {
+    processing = "ban";
+  }
+  const form = new ui.ActionFormData();
+  form.title("§a§lNovaDefender controlpanel");
+  form.body(
+    "§a§l--- NovaDefender AntiCheat ---\n\n§r NoFall Setting (Setting User Interface)\n\n"
+  );
+  form.button(`status\n§7${getdp("nova:nofall_status")}`);
+  form.button(`processing\n§r§7${processing}`);
+  form.button(
+    `fall_distance_threshold\n§7${getdp(
+      "nova:nofall_fall_distance_threshold"
+    )} block`
+  );
+  form.button("§l戻る / return", "textures/ui/realms_red_x");
+  form
+    .show(player)
+    .then((response) => {
+      switch (response.selection) {
+        case 0:
+          setdp("nova:nofall_status", !getdp("nova:nofall_status"));
+          nofall_setting(player);
+          break;
+        case 1:
+          nofall_processing_setting(player);
+          break;
+        case 2:
+          nofall_fall_distance_setting(player);
+          break;
+        case 3:
+          setting(player);
+          break;
+        default:
+          setting(player);
+          break;
+      }
+    })
+    .catch((error) =>
+      player.sendMessage("An error occurred: " + error.message)
+    );
+}
+
+function nofall_processing_setting(player) {
+  const form = new ui.ActionFormData();
+  form.title("§a§lNovaDefender NoFall Processing");
+  form.body("Choose processing action for NoFall detection:");
+  form.button("None");
+  form.button("Notification");
+  form.button("Kick");
+  form.button("Ban");
+  form
+    .show(player)
+    .then((response) => {
+      switch (response.selection) {
+        case 0:
+          setdp("nova:nofall_processing", 0);
+          break;
+        case 1:
+          setdp("nova:nofall_processing", 1);
+          break;
+        case 2:
+          setdp("nova:nofall_processing", 2);
+          break;
+        case 3:
+          setdp("nova:nofall_processing", 3);
+          break;
+      }
+      nofall_setting(player);
+    })
+    .catch((error) =>
+      player.sendMessage("An error occurred: " + error.message)
+    );
+}
+
+function nofall_fall_distance_setting(player) {
+  const form = new ui.ModalFormData();
+  form.title("§a§lNovaDefender NoFall Fall Distance Threshold");
+  form.textField(
+    "Set fall distance threshold (blocks) for NoFall detection",
+    "例: 5",
+    getdp("nova:nofall_fall_distance_threshold")
+  );
+  form
+    .show(player)
+    .then((response) => {
+      if (!response.canceled) {
+        const val = parseInt(response.formValues[0]);
+        if (!isNaN(val) && val > 0) {
+          setdp("nova:nofall_fall_distance_threshold", val);
+          player.sendMessage(`Fall distance threshold set to ${val} blocks.`);
+        } else {
+          player.sendMessage("Invalid input. Please enter a positive number.");
+        }
+      }
+      nofall_setting(player);
+    })
+    .catch((error) =>
+      player.sendMessage("An error occurred: " + error.message)
+    );
+}
+
+//---
+
 function getAE() {
   const overworld = server.world.getDimension("overworld").getEntities().length;
   const nether = server.world.getDimension("nether").getEntities().length;
@@ -2808,8 +3150,13 @@ server.world.afterEvents.entityHitEntity.subscribe((ev) => {
   if (!ev.damagingEntity.typeId == "player") return;
 
   const { damagingEntity } = ev;
-  damagingEntity.setDynamicProperty("nova:cps_c", get_cps(damagingEntity) + 1);
-  damagingEntity.setDynamicProperty("nova:tick", true);
+  if (damagingEntity.typeId == "minecraft:player") {
+    damagingEntity.setDynamicProperty(
+      "nova:cps_c",
+      get_cps(damagingEntity) + 1
+    );
+    damagingEntity.setDynamicProperty("nova:tick", true);
+  }
 });
 
 server.world.afterEvents.playerSpawn.subscribe((ev) => {
@@ -3869,6 +4216,8 @@ function setting(player) {
   form.button("Command\n§aコマンド系の設定");
   form.button("Maxentity\n§a最大エンティティの設定");
   form.button("BlockReach\n§aリーチ関連の設定");
+  form.button("Nofall\n§aNofallの検知設定を行います");
+  form.button("AutoTotem\n§aAutoTotemの検知設定を行います");
 
   form
     .show(player)
@@ -3902,6 +4251,11 @@ function setting(player) {
         case 7:
           blockreach_setting(player);
           break;
+        case 8:
+          nofall_setting(player);
+          break;
+        case 9:
+          autototem_setting(player);
         default:
           nova_hub(player);
           break;
