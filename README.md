@@ -53,6 +53,8 @@ GP3 License
 _Note:_ NovaDefenderのオペレーター権限は、Minecraftのオペレーター権限とは別物です。  
 _Note:_ デフォルトのコマンドプレフィックスは`;`です。オペレーターコマンドを実行するには`;op`を使用してください。  
 
+---
+
 Before installing in your world, enable Education Edition, Beta API, and future Creator Features.
 
 After installation, run `function nova/start`. A setup form will appear; follow the instructions to gain operator permissions.  
