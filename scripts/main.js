@@ -53,7 +53,7 @@ let abouts = [
 ];
 
 let elapsedTicks = 0;
-let v = "v1.2.8";
+let v = "v1.3.0";
 let tickCount = 0;
 let lastTime = Date.now();
 let currentTPS = 20;
