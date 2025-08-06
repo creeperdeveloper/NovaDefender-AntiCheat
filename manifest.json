@@ -1,7 +1,7 @@
 {
   "format_version": 2,
   "header": {
-    "name": "NovaDefender AntiCheat v1.2.8",
+    "name": "NovaDefender AntiCheat v1.3.0",
     "description": "多機能で使いやすいアンチチートアドオンです。\nCreated By FlimsyDeer05833 / creeper_developer\n\n\nfunction nova/startで初期セットアップを行ってください",
     "uuid": "7beaaa9b-8769-4aa4-8ad0-288ff36260ad",
     "version": [
@@ -38,7 +38,7 @@
     },
     {
       "module_name": "@minecraft/server-ui",
-      "version": "2.2.0-beta"
+      "version": "2.1.0-beta"
     },
     {
       "module_name": "@minecraft/debug-utilities",
@@ -47,3 +47,4 @@
   ]
 
 }
+
